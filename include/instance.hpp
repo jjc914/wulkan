@@ -1,16 +1,16 @@
 #ifndef wulkan_vk_INSTANCE_HPP
 #define wulkan_vk_INSTANCE_HPP
 
-#define VLK_ENABLE_VALIDATION_LAYERS
-
 #include <cstdint>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 #include <vulkan/vulkan_core.h>
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
+
+#include "debug_messenger.hpp"
 
 namespace vk {
 
@@ -69,17 +69,20 @@ public:
         vkci.enabledExtensionCount =(uint32_t)ci._enabled_extensions.size();
         vkci.ppEnabledExtensionNames = ci._enabled_extensions.data();
 
-        if (vkCreateInstance(&vkci, nullptr, &_instance)) {
+        if (vkCreateInstance(&vkci, nullptr, &_handle)) {
             std::cerr << "failed to create Vulkan instance" << std::endl;
         }
-        std::clog << "created Vulkan instance" << '\n';
+        std::clog << "created Vulkan instance" << std::endl;
     }
 
     ~Instance() {
-        vkDestroyInstance(_instance, nullptr);
+        vkDestroyInstance(_handle, nullptr);
     }
+
+    VkInstance handle() const { return _handle; }
+
 private:
-    VkInstance _instance;
+    VkInstance _handle;
 };
 
 }
