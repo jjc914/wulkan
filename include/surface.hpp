@@ -1,5 +1,5 @@
-#ifndef wulkan_vk_SURFACE_HPP
-#define wulkan_vk_SURFACE_HPP
+#ifndef wulkan_wk_handle_HPP
+#define wulkan_wk_handle_HPP
 
 #include <cstdint>
 #include <iostream>
@@ -10,7 +10,7 @@
 #endif
 #include <GLFW/glfw3.h>
 
-namespace vk {
+namespace wk {
 
 class SurfaceCreateInfo {
 public:
@@ -28,21 +28,20 @@ public:
     Surface(const SurfaceCreateInfo& ci) {
         _create_info = ci;
 
-        if (glfwCreateWindowSurface(ci._instance, ci._window, nullptr, &_surface)) {
+        if (glfwCreateWindowSurface(ci._instance, ci._window, nullptr, &_handle)) {
             std::cerr << "failed to create surface" << std::endl;
         }
         std::clog << "created surface" << std::endl;
     }
 
     ~Surface() {
-        vkDestroySurfaceKHR(_create_info._instance, _surface, nullptr);
+        vkDestroySurfaceKHR(_create_info._instance, _handle, nullptr);
     }
 
-    VkSurfaceKHR handle() const { return _surface; }
-
+    VkSurfaceKHR handle() const { return _handle; }
 private:
     SurfaceCreateInfo _create_info;
-    VkSurfaceKHR _surface;
+    VkSurfaceKHR _handle;
 };
 
 }

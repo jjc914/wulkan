@@ -1,5 +1,5 @@
-#ifndef wulkan_vk_DEBUG_MESSENGER_HPP
-#define wulkan_vk_DEBUG_MESSENGER_HPP
+#ifndef wulkan_wk_DEBUG_MESSENGER_HPP
+#define wulkan_wk_DEBUG_MESSENGER_HPP
 
 #include <iostream>
 
@@ -10,7 +10,7 @@
 
 #include "wulkan_internal.hpp"
 
-namespace vk {
+namespace wk {
 
 class DebugMessengerCreateInfo {
 public:
@@ -38,16 +38,16 @@ public:
     DebugMessenger(const DebugMessengerCreateInfo& ci) {
         _create_info = ci;
 
-        if (IsValidationLayersSupported()) {
+        if (!IsValidationLayersSupported()) {
             std::clog << "validation layers requested, but not available" << std::endl;
         }
 
-        _vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(ci._instance, "vkCreateDebugUtilsMessengerEXT");
+        _vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(ci._instance, "vkCreateDebugUtilsMessengerEXT");
         if (_vkCreateDebugUtilsMessengerEXT == nullptr) {
             std::cerr << "failed to create vkCreateDebugUtilsMessengerEXT function" << std::endl;;
         }
 
-        _vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(ci._instance, "vkDestroyDebugUtilsMessengerEXT");
+        _vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(ci._instance, "vkDestroyDebugUtilsMessengerEXT");
         if (_vkCreateDebugUtilsMessengerEXT == nullptr) {
             std::cerr << "failed to create vkDestroyDebugUtilsMessengerEXT function" << std::endl;;
         }
@@ -70,7 +70,7 @@ public:
     ~DebugMessenger() {
         _vkDestroyDebugUtilsMessengerEXT(_create_info._instance, _handle, nullptr);
     }
-    
+
 private:
     DebugMessengerCreateInfo _create_info;
     VkDebugUtilsMessengerEXT _handle;

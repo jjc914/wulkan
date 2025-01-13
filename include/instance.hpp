@@ -1,5 +1,5 @@
-#ifndef wulkan_vk_INSTANCE_HPP
-#define wulkan_vk_INSTANCE_HPP
+#ifndef wulkan_wk_INSTANCE_HPP
+#define wulkan_wk_INSTANCE_HPP
 
 #include <cstdint>
 #include <iostream>
@@ -12,7 +12,7 @@
 
 #include "debug_messenger.hpp"
 
-namespace vk {
+namespace wk {
 
 class ApplicationInfo {
 public:
@@ -37,13 +37,13 @@ class InstanceCreateInfo {
 public:
     InstanceCreateInfo& set_pnext(void* pnext) { _pnext = pnext; return *this; }
     InstanceCreateInfo& set_flags(VkInstanceCreateFlags flags) { _flags = flags; return *this; }
-    InstanceCreateInfo& set_enabled_extensions(const std::vector<const char*>& extensions) { _enabled_extensions = extensions; return *this; }
-    InstanceCreateInfo& set_enabled_layers(const std::vector<const char*>& layers) { _enabled_layers = layers; return *this; }
+    InstanceCreateInfo& set_extensions(const std::vector<const char*>& extensions) { _extensions = extensions; return *this; }
+    InstanceCreateInfo& set_layers(const std::vector<const char*>& layers) { _layers = layers; return *this; }
 private:
     void* _pnext = nullptr;
     VkInstanceCreateFlags _flags = 0;
-    std::vector<const char*> _enabled_extensions;
-    std::vector<const char*> _enabled_layers;
+    std::vector<const char*> _extensions;
+    std::vector<const char*> _layers;
 
     friend class Instance;
 };
@@ -64,10 +64,10 @@ public:
         vkci.pNext = nullptr;
         vkci.flags = ci._flags;
         vkci.pApplicationInfo = &vkai;
-        vkci.enabledLayerCount =(uint32_t)ci._enabled_layers.size();
-        vkci.ppEnabledLayerNames = ci._enabled_layers.data();
-        vkci.enabledExtensionCount =(uint32_t)ci._enabled_extensions.size();
-        vkci.ppEnabledExtensionNames = ci._enabled_extensions.data();
+        vkci.enabledLayerCount =(uint32_t)ci._layers.size();
+        vkci.ppEnabledLayerNames = ci._layers.data();
+        vkci.enabledExtensionCount =(uint32_t)ci._extensions.size();
+        vkci.ppEnabledExtensionNames = ci._extensions.data();
 
         if (vkCreateInstance(&vkci, nullptr, &_handle)) {
             std::cerr << "failed to create Vulkan instance" << std::endl;
