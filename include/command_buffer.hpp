@@ -75,7 +75,10 @@ public:
 
     ~CommandBuffer() {
         vkFreeCommandBuffers(_device, _command_pool, 1, &_handle);
-    }   
+    }
+
+    CommandBuffer(const CommandBuffer&) = delete;
+    CommandBuffer& operator=(const CommandBuffer&) = delete;
 
     void Reset() {
         vkResetCommandBuffer(_handle, 0);

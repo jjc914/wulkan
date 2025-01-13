@@ -99,6 +99,9 @@ public:
         vkDestroyDevice(_handle, nullptr);
     }
 
+    Device(const Device&) = delete;
+    Device& operator=(const Device&) = delete;
+
     void AwaitIdle() const {
         vkDeviceWaitIdle(_handle);
     }

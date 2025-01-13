@@ -79,8 +79,10 @@ public:
         vkDestroyInstance(_handle, nullptr);
     }
 
-    VkInstance handle() const { return _handle; }
+    Instance(const Instance&) = delete;
+    Instance& operator=(const Instance&) = delete;
 
+    VkInstance handle() const { return _handle; }
 private:
     VkInstance _handle;
 };

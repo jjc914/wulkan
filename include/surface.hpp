@@ -38,6 +38,9 @@ public:
         vkDestroySurfaceKHR(_create_info._instance, _handle, nullptr);
     }
 
+    Surface(const Surface&) = delete;
+    Surface& operator=(const Surface&) = delete;
+
     VkSurfaceKHR handle() const { return _handle; }
 private:
     SurfaceCreateInfo _create_info;

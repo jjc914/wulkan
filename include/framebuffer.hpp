@@ -55,6 +55,9 @@ public:
         vkDestroyFramebuffer(_device, _handle, nullptr);
     }
 
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
+
     VkFramebuffer handle() const { return _handle; }
 private:
     VkFramebuffer _handle;

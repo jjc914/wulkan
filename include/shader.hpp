@@ -44,6 +44,9 @@ public:
     ~Shader() {
         vkDestroyShaderModule(_device, _handle, nullptr);
     }
+
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
     
     VkShaderModule handle() const { return _handle; }
 private:

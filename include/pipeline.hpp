@@ -164,6 +164,9 @@ public:
         vkDestroyPipelineLayout(_device, _layout, nullptr);
     }
 
+    Pipeline(const Pipeline&) = delete;
+    Pipeline& operator=(const Pipeline&) = delete;
+
     VkPipeline handle() const { return _handle; }
 private:
     VkPipeline _handle;
