@@ -16,4 +16,7 @@
 #include "shader.hpp"
 #include "pipeline.hpp"
 
+#include "allocator.hpp"
+#include "buffer.hpp"
+
 #endif

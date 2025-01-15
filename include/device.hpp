@@ -16,6 +16,21 @@
 
 namespace wk {
 
+class GraphicsQueueSubmitInfo {
+public:
+    GraphicsQueueSubmitInfo& set_wait_semaphores(std::vector<std::pair<VkSemaphore, VkPipelineStageFlags>> wait_semaphores) { _wait_semaphores = wait_semaphores; return *this; }
+    GraphicsQueueSubmitInfo& set_command_buffers(std::vector<VkCommandBuffer> command_buffers) { _command_buffers = command_buffers; return *this; }
+    GraphicsQueueSubmitInfo& set_signal_semaphores(std::vector<VkSemaphore> signal_semaphores) { _signal_semaphores = signal_semaphores; return *this; }
+    GraphicsQueueSubmitInfo& set_fence_to_signal(VkFence fence_to_signal) { _fence_to_signal = fence_to_signal; return *this; }
+private:
+    std::vector<std::pair<VkSemaphore, VkPipelineStageFlags>> _wait_semaphores{};
+    std::vector<VkCommandBuffer> _command_buffers{};
+    std::vector<VkSemaphore> _signal_semaphores{};
+    VkFence _fence_to_signal = VK_NULL_HANDLE;
+
+    friend class Device;
+};
+
 class DeviceCreateInfo {
 public:
     DeviceCreateInfo& set_instance(VkInstance instance) { _instance = instance; return *this; }
@@ -99,27 +114,36 @@ public:
         vkDestroyDevice(_handle, nullptr);
     }
 
-    Device(const Device&) = delete;
-    Device& operator=(const Device&) = delete;
-
     void AwaitIdle() const {
         vkDeviceWaitIdle(_handle);
     }
 
-    void GraphicsQueueSubmit(VkCommandBuffer command_buffer, VkSemaphore semaphore_to_wait, VkSemaphore semaphore_to_signal, VkFence fence_to_signal) {
-        VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    void GraphicsQueueAwaitIdle() const {
+        vkQueueWaitIdle(_graphics_queue);
+    }
+
+    void GraphicsQueueSubmit(GraphicsQueueSubmitInfo si) {
+        std::vector<VkSemaphore> wait_semaphores{};
+        for (int i = 0; i < si._wait_semaphores.size(); ++i) {
+            wait_semaphores.push_back(si._wait_semaphores[i].first);
+        }
+
+        std::vector<VkPipelineStageFlags> wait_stage_flags{};
+        for (int i = 0; i < si._wait_semaphores.size(); ++i) {
+            wait_stage_flags.push_back(si._wait_semaphores[i].second);
+        }
 
         VkSubmitInfo submit_info{};
         submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submit_info.waitSemaphoreCount = 1;
-        submit_info.pWaitSemaphores = &semaphore_to_wait;
-        submit_info.pWaitDstStageMask = wait_stages;
-        submit_info.commandBufferCount = 1;
-        submit_info.pCommandBuffers = &command_buffer;
-        submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores = &semaphore_to_signal;
+        submit_info.waitSemaphoreCount = si._wait_semaphores.size();
+        submit_info.pWaitSemaphores = wait_semaphores.data();
+        submit_info.pWaitDstStageMask = wait_stage_flags.data();
+        submit_info.commandBufferCount = si._command_buffers.size();
+        submit_info.pCommandBuffers = si._command_buffers.data();
+        submit_info.signalSemaphoreCount = si._signal_semaphores.size();
+        submit_info.pSignalSemaphores = si._signal_semaphores.data();
         
-        vkQueueSubmit(_graphics_queue, 1, &submit_info, fence_to_signal);
+        vkQueueSubmit(_graphics_queue, 1, &submit_info, si._fence_to_signal);
     }
 
     void PresentQueueSubmit(VkSwapchainKHR swapchain, uint32_t available_image_index, VkSemaphore semaphore_to_wait) {

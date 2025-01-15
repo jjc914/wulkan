@@ -40,9 +40,6 @@ public:
         vkDestroyFence(_device, _handle, nullptr);
     }
 
-    Fence(const Fence&) = delete;
-    Fence& operator=(const Fence&) = delete;
-
     void Await() const {
         vkWaitForFences(_device, 1, &_handle, VK_TRUE, UINT64_MAX);
     }

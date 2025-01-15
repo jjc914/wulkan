@@ -74,9 +74,6 @@ public:
         vkDestroyRenderPass(_device, _handle, nullptr);
     }
 
-    RenderPass(const RenderPass&) = delete;
-    RenderPass& operator=(const RenderPass&) = delete;
-
     VkRenderPass handle() const { return _handle; }
 private:
     VkRenderPass _handle;

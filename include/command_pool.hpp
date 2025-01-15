@@ -46,9 +46,6 @@ public:
         vkDestroyCommandPool(_device, _handle, nullptr);
     }
 
-    CommandPool(const CommandPool&) = delete;
-    CommandPool& operator=(const CommandPool&) = delete;
-
     VkCommandPool handle() const { return _handle; }
 private:
     VkCommandPool _handle;

@@ -11,7 +11,6 @@
 #endif
 
 namespace wk {
-
 class CommandBufferCreateInfo {
 public:
     CommandBufferCreateInfo& set_device(VkDevice device) { _device = device; return *this; }
@@ -23,47 +22,16 @@ private:
     friend class CommandBuffer;
 };
 
-class ViewportInfo {
-public:
-    ViewportInfo& set_x(float x) { _x = x; return *this; }
-    ViewportInfo& set_y(float y) { _y = y; return *this; }
-    ViewportInfo& set_width(float width) { _width = width; return *this; }
-    ViewportInfo& set_height(float height) { _height = height; return *this; }
-    ViewportInfo& set_min_depth(float min_depth) { _min_depth = min_depth; return *this; }
-    ViewportInfo& set_max_depth(float max_depth) { _max_depth = max_depth; return *this; }
-private:
-    float _x;
-    float _y;
-    float _width;
-    float _height;
-    float _min_depth;
-    float _max_depth;
-
-    friend class CommandBuffer;
-};
-
-class ScissorInfo {
-public:
-    ScissorInfo& set_offset(VkOffset2D offset) { _offset = offset; return *this; }
-    ScissorInfo& set_extent(VkExtent2D extent) { _extent = extent; return *this; }
-private:
-    VkOffset2D _offset;
-    VkExtent2D _extent;
-
-    friend class CommandBuffer;
-};
-
 class CommandBuffer {
 public:
     CommandBuffer(const CommandBufferCreateInfo& ci) {
-        VkCommandBufferAllocateInfo allocateInfo{};
-        allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        VkCommandBufferAllocateInfo allocate_info{};
+        allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocate_info.commandPool = ci._command_pool;
+        allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocate_info.commandBufferCount = 1;
         
-        allocateInfo.commandPool = ci._command_pool;
-        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocateInfo.commandBufferCount = 1;
-        
-        if(vkAllocateCommandBuffers(ci._device, &allocateInfo, &_handle) != VK_SUCCESS) {
+        if(vkAllocateCommandBuffers(ci._device, &allocate_info, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to allocate command buffer" << std::endl;
         }
 
@@ -77,16 +45,14 @@ public:
         vkFreeCommandBuffers(_device, _command_pool, 1, &_handle);
     }
 
-    CommandBuffer(const CommandBuffer&) = delete;
-    CommandBuffer& operator=(const CommandBuffer&) = delete;
-
     void Reset() {
         vkResetCommandBuffer(_handle, 0);
     }
 
-    void BeginRecord() {
+    void BeginRecord(VkCommandBufferUsageFlags flags = 0) {
         VkCommandBufferBeginInfo begin_info{};
         begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        begin_info.flags = flags;
 
         if (vkBeginCommandBuffer(_handle, &begin_info) != VK_SUCCESS) {
             std::cerr << "failed to begin recording command buffer" << std::endl;
@@ -120,21 +86,11 @@ public:
         vkCmdBindPipeline(_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     }
 
-    void SetViewport(ViewportInfo i) {
-        VkViewport viewport{};
-        viewport.x = i._x;
-        viewport.y = i._y;
-        viewport.width = i._width;
-        viewport.height = i._height;
-        viewport.minDepth = i._min_depth;
-        viewport.maxDepth = i._max_depth;
+    void SetViewport(VkViewport viewport) {
         vkCmdSetViewport(_handle, 0, 1, &viewport);
     }
 
-    void SetScissor(ScissorInfo i) {
-        VkRect2D scissor{};
-        scissor.offset = i._offset;
-        scissor.extent = i._extent;
+    void SetScissor(VkRect2D scissor) {
         vkCmdSetScissor(_handle, 0, 1, &scissor);
     }
 

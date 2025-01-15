@@ -70,9 +70,6 @@ public:
     ~DebugMessenger() {
         _vkDestroyDebugUtilsMessengerEXT(_create_info._instance, _handle, nullptr);
     }
-
-    DebugMessenger(const DebugMessenger&) = delete;
-    DebugMessenger& operator=(const DebugMessenger&) = delete;
 private:
     DebugMessengerCreateInfo _create_info;
     VkDebugUtilsMessengerEXT _handle;

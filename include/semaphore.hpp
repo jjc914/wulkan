@@ -39,9 +39,6 @@ public:
         vkDestroySemaphore(_device, _handle, nullptr);
     }
 
-    Semaphore(const Semaphore&) = delete;
-    Semaphore& operator=(const Semaphore&) = delete;
-
     VkSemaphore handle() const { return _handle; }
 private:
     VkSemaphore _handle;

@@ -119,9 +119,6 @@ public:
         vkDestroySwapchainKHR(_device, _handle, nullptr);
     }
 
-    Swapchain(const Swapchain&) = delete;
-    Swapchain& operator=(const Swapchain&) = delete;
-
     uint32_t AcquireNextImageIndex(uint64_t timeout, VkSemaphore semaphore_to_signal, VkFence fence_to_signal) {
         uint32_t image_index;
         VkResult result = vkAcquireNextImageKHR(_device, _handle, UINT64_MAX, semaphore_to_signal, fence_to_signal, &image_index);
