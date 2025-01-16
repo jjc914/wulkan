@@ -94,6 +94,14 @@ public:
         vkCmdSetScissor(_handle, 0, 1, &scissor);
     }
 
+    void CopyBuffer(VkBuffer source, VkBuffer dest, VkDeviceSize size) {
+        VkBufferCopy vertex_copy_region{};
+        vertex_copy_region.srcOffset = 0;
+        vertex_copy_region.dstOffset = 0;
+        vertex_copy_region.size = size;
+        vkCmdCopyBuffer(_handle, source, dest, 1, &vertex_copy_region);
+    }
+
     VkCommandBuffer handle() const { return _handle; }
 private:
     VkCommandBuffer _handle;
