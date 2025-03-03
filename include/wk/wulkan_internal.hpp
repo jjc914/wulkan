@@ -6,6 +6,7 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 
 #include <vulkan/vulkan_core.h>
 #ifdef __APPLE__
@@ -212,7 +213,6 @@ std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
     bin_dir = buf;
     bin_dir.remove_filename();
 #else
-    std::cerr << "reading executable path not implemented for non-apple devices";
 #endif
     
     std::ifstream file(bin_dir / file_name, std::ios::ate | std::ios::binary);

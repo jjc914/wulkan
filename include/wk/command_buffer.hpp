@@ -102,6 +102,10 @@ public:
         vkCmdCopyBuffer(_handle, source, dest, 1, &vertex_copy_region);
     }
 
+    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags stage_flags, uint32_t offset, uint32_t size, void* values) {
+        vkCmdPushConstants(_handle, layout, stage_flags, offset, size, values);
+    }
+
     VkCommandBuffer handle() const { return _handle; }
 private:
     VkCommandBuffer _handle;

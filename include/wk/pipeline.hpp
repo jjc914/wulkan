@@ -105,6 +105,27 @@ private:
     friend class Pipeline;
 };
 
+class PushConstantRange {
+public:
+    PushConstantRange& set_stage_flags(VkShaderStageFlags flags) { _stage_flags = flags; return *this; }
+    PushConstantRange& set_offset(uint32_t offset) { _offset = offset; return *this; }
+    PushConstantRange& set_size(uint32_t size) { _size = size; return *this; }
+
+    VkPushConstantRange to_vk_push_constant_range() {
+        VkPushConstantRange pcr{};
+        pcr.stageFlags = _stage_flags;
+        pcr.offset = _offset;
+        pcr.size = _size;
+        return pcr;
+    }
+private:
+    VkShaderStageFlags _stage_flags = 0;
+    uint32_t _offset = 0;
+    uint32_t _size = 0;
+
+    friend class Pipeline;
+};
+
 class PipelineCreateInfo {
 public:
     PipelineCreateInfo& set_device(VkDevice device) { _device = device; return *this; }
@@ -116,6 +137,7 @@ public:
     PipelineCreateInfo& set_scissor(VkRect2D scissor) { _scissor = scissor; return *this; }
     PipelineCreateInfo& set_vertex_binding_descriptions(std::vector<VkVertexInputBindingDescription> descriptions) { _vertex_binding_descriptions = descriptions; return *this; }
     PipelineCreateInfo& set_vertex_attribute_descriptions(std::vector<VkVertexInputAttributeDescription> descriptions) { _vertex_attribute_descriptions = descriptions; return *this; }
+    PipelineCreateInfo& set_push_constant_ranges(std::vector<VkPushConstantRange> ranges) { _push_constant_ranges = ranges; return *this; }
 private:
     VkDevice _device = VK_NULL_HANDLE;
     VkRenderPass _render_pass = VK_NULL_HANDLE;
@@ -124,6 +146,7 @@ private:
     VkExtent2D _extent{};
     std::vector<VkVertexInputBindingDescription> _vertex_binding_descriptions{};
     std::vector<VkVertexInputAttributeDescription> _vertex_attribute_descriptions{};
+    std::vector<VkPushConstantRange> _push_constant_ranges{};
     VkViewport _viewport{};
     VkRect2D _scissor{};
 
@@ -216,7 +239,8 @@ public:
         VkPipelineLayoutCreateInfo pipeline_layout_create_info{};
         pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipeline_layout_create_info.setLayoutCount = 0;
-        pipeline_layout_create_info.pushConstantRangeCount = 0;
+        pipeline_layout_create_info.pushConstantRangeCount = ci._push_constant_ranges.size();
+        pipeline_layout_create_info.pPushConstantRanges = ci._push_constant_ranges.data();
 
         if (vkCreatePipelineLayout(ci._device, &pipeline_layout_create_info, nullptr, &_layout) != VK_SUCCESS) {
             std::cerr << "failed to create pipeline layout" << std::endl;
@@ -260,6 +284,7 @@ public:
     VkPipeline handle() const { return _handle; }
     VkViewport viewport() const { return _viewport; }
     VkRect2D scissor() const { return _scissor; }
+    VkPipelineLayout layout() const { return _layout; }
 private:
     VkPipeline _handle;
     VkPipelineLayout _layout;
