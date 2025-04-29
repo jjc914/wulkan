@@ -14,10 +14,12 @@ target_include_directories(VulkanMemoryAllocator INTERFACE vendor/VulkanMemoryAl
 set(LIB_DEPENDENCIES ${LIB_DEPENDENCIES} VulkanMemoryAllocator)
 
 add_library(${PROJECT_NAME} STATIC
+    "include/wk/wulkan.hpp"
     "include/wk/wulkan_internal.hpp" "src/wulkan_internal.cpp"
+    "include/wk/vma_include.hpp" "src/vma_include.cpp"
     "include/wk/instance.hpp"
     "include/wk/debug_messenger.hpp"
-    "include/wk/surface.hpp"
+    "include/wk/physical_device.hpp"
     "include/wk/device.hpp"
     "include/wk/swapchain.hpp"
     "include/wk/render_pass.hpp"
@@ -27,8 +29,11 @@ add_library(${PROJECT_NAME} STATIC
     "include/wk/semaphore.hpp"
     "include/wk/fence.hpp"
     "include/wk/shader.hpp"
+    "include/wk/pipeline_layout.hpp"
     "include/wk/pipeline.hpp"
-    "include/wk/vma_include.hpp"
+    
+    "include/ext/glfw/glfw_internal.hpp"
+    "include/ext/glfw/surface.hpp"
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
@@ -42,8 +47,3 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIB_DEPENDENCIES})
-
-# target_include_directories(${PROJECT_NAME} INTERFACE
-#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#     $<INSTALL_INTERFACE:include>
-# )

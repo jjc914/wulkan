@@ -1,57 +1,84 @@
 #ifndef wulkan_wk_FENCE_HPP
 #define wulkan_wk_FENCE_HPP
 
+#include "wulkan_internal.hpp"
+
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
-
-#include <vulkan/vulkan_core.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
 
 namespace wk {
 
 class FenceCreateInfo {
 public:
-    FenceCreateInfo& set_device(VkDevice device) { _device = device; return *this; }
-private:
-    VkDevice _device = VK_NULL_HANDLE;
+    FenceCreateInfo& set_signaled(bool signaled = true) {
+        _signaled = signaled;
+        return *this;
+    }
 
-    friend class Fence;
+    VkFenceCreateInfo to_vk_fence_create_info() const {
+        VkFenceCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        ci.flags = _signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0;
+        return ci;
+    }
+private:
+    bool _signaled = true;
 };
 
 class Fence {
 public:
-    Fence(const FenceCreateInfo& ci) {
-        VkFenceCreateInfo vkci{};
-        vkci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        vkci.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        
-        if (vkCreateFence(ci._device, &vkci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create fence" << std::endl;;
+    Fence(VkDevice device, const VkFenceCreateInfo& create_info)
+        : _device(device)
+    {
+        if (vkCreateFence(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create fence" << std::endl;
+            std::exit(-1);
         }
-
-        _device = ci._device;
-
-        std::clog << "created fence" << std::endl;
     }
 
     ~Fence() {
-        vkDestroyFence(_device, _handle, nullptr);
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyFence(_device, _handle, nullptr);
+        }
+    }
+
+    Fence(const Fence&) = delete;
+    Fence& operator=(const Fence&) = delete;
+
+    Fence(Fence&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    Fence& operator=(Fence&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyFence(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
     }
 
     void Await() const {
         vkWaitForFences(_device, 1, &_handle, VK_TRUE, UINT64_MAX);
     }
 
-    void Reset() {
+    void Reset() const {
         vkResetFences(_device, 1, &_handle);
     }
 
     VkFence handle() const { return _handle; }
 private:
-    VkFence _handle;
-    VkDevice _device;
+    VkFence _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

@@ -1,48 +1,68 @@
 #ifndef wulkan_wk_SEMAPHORE_HPP
 #define wulkan_wk_SEMAPHORE_HPP
 
+#include "wulkan_internal.hpp"
+
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
-
-#include <vulkan/vulkan_core.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
 
 namespace wk {
 
 class SemaphoreCreateInfo {
 public:
-    SemaphoreCreateInfo& set_device(VkDevice device) { _device = device; return *this; }
-private:
-    VkDevice _device = VK_NULL_HANDLE;
-
-    friend class Semaphore;
+    VkSemaphoreCreateInfo to_vk_semaphore_create_info() {
+        VkSemaphoreCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        return ci;
+    }
 };
 
 class Semaphore {
 public:
-    Semaphore(const SemaphoreCreateInfo& ci) {
-        VkSemaphoreCreateInfo vkci{};
-        vkci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        
-        if (vkCreateSemaphore(ci._device, &vkci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create semaphore" << std::endl;;
+    Semaphore(VkDevice device, const VkSemaphoreCreateInfo& create_info)
+        : _device(device)
+    {
+        if (vkCreateSemaphore(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create semaphore" << std::endl;
+            std::exit(-1);
         }
-
-        _device = ci._device;
-
-        std::clog << "created semaphore" << std::endl;
     }
 
     ~Semaphore() {
-        vkDestroySemaphore(_device, _handle, nullptr);
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroySemaphore(_device, _handle, nullptr);
+        }
+    }
+
+    Semaphore(const Semaphore&) = delete;
+    Semaphore& operator=(const Semaphore&) = delete;
+
+    Semaphore(Semaphore&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    Semaphore& operator=(Semaphore&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroySemaphore(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
     }
 
     VkSemaphore handle() const { return _handle; }
 private:
-    VkSemaphore _handle;
-    VkDevice _device;
+    VkSemaphore _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

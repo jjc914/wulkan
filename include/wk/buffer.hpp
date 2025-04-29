@@ -1,66 +1,103 @@
 #ifndef wulkan_wk_BUFFER_HPP
 #define wulkan_wk_BUFFER_HPP
 
+#include "vma_include.hpp"
+#include "wulkan_internal.hpp"
+
+#include <cstdlib>
 #include <cstdint>
 #include <iostream>
-#include <vector>
-#include <cstring>
-
-#include <vulkan/vulkan_core.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-
-#include "vma_include.hpp"
 
 namespace wk {
 
 class BufferCreateInfo {
 public:
-    BufferCreateInfo& set_allocator(VmaAllocator allocator) { _allocator = allocator; return *this; }
     BufferCreateInfo& set_size(VkDeviceSize size) { _size = size; return *this; }
     BufferCreateInfo& set_usage(VkBufferUsageFlags usage) { _usage = usage; return *this; }
-    BufferCreateInfo& set_allocation_usage(VmaMemoryUsage usage) { _allocation_usage = usage; return *this; }
     BufferCreateInfo& set_sharing_mode(VkSharingMode sharing_mode) { _sharing_mode = sharing_mode; return *this; }
+
+    VkBufferCreateInfo to_vk_buffer_create_info() {
+        VkBufferCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        ci.size = _size;
+        ci.usage = _usage;
+        ci.sharingMode = _sharing_mode;
+        return ci;
+    }
+
 private:
-    VmaAllocator _allocator = VMA_NULL;
+    VmaAllocator _allocator = VK_NULL_HANDLE;
     VkDeviceSize _size = 0;
     VkBufferUsageFlags _usage = 0;
-    VmaMemoryUsage _allocation_usage = VMA_MEMORY_USAGE_AUTO;
     VkSharingMode _sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
+};
 
-    friend class Buffer;
+class AllocationCreateInfo {
+public:
+    AllocationCreateInfo& set_usage(VmaMemoryUsage usage) { _usage = usage; return *this; }
+
+    VmaAllocationCreateInfo to_vma_allocation_create_info() {
+        VmaAllocationCreateInfo ci{};
+        ci.usage = _usage;
+        return ci;
+    }
+
+private:
+    VmaMemoryUsage _usage = VMA_MEMORY_USAGE_AUTO;
 };
 
 class Buffer {
 public:
-    Buffer(const BufferCreateInfo& ci) {
-        VkBufferCreateInfo vkci = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-        vkci.size = ci._size;
-        vkci.usage = ci._usage;
-        vkci.sharingMode = ci._sharing_mode;
-        
-        VmaAllocationCreateInfo alloc_info = {};
-        alloc_info.usage = ci._allocation_usage;
-        
-        VkBuffer buffer;
-        VmaAllocation allocation;
-        vmaCreateBuffer(ci._allocator, &vkci, &alloc_info, &_handle, &_allocation, nullptr);
-
-        _allocator = ci._allocator;
+    Buffer(VmaAllocator allocator, const VkBufferCreateInfo& ci, const VmaAllocationCreateInfo& aci)
+        : _allocator(allocator)
+    {
+        if (vmaCreateBuffer(_allocator, &ci, &aci, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
+            std::cerr << "failed to create buffer" << std::endl;
+            std::exit(-1);
+        }
     }
 
     ~Buffer() {
-        vmaDestroyBuffer(_allocator, _handle, _allocation);
+        if (_handle != VK_NULL_HANDLE) {
+            vmaDestroyBuffer(_allocator, _handle, _allocation);
+        }
+    }
+
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
+
+    Buffer(Buffer&& other) noexcept
+        : _handle(other._handle),
+          _allocator(other._allocator),
+          _allocation(other._allocation)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._allocation = nullptr;
+    }
+
+    Buffer& operator=(Buffer&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vmaDestroyBuffer(_allocator, _handle, _allocation);
+            }
+            _handle = other._handle;
+            _allocator = other._allocator;
+            _allocation = other._allocation;
+
+            other._handle = VK_NULL_HANDLE;
+            other._allocation = nullptr;
+        }
+        return *this;
     }
 
     VkBuffer handle() const { return _handle; }
     const VkBuffer* phandle() const { return &_handle; }
     VmaAllocation allocation() const { return _allocation; }
+
 private:
-    VkBuffer _handle;
-    VmaAllocator _allocator;
-    VmaAllocation _allocation;
+    VkBuffer _handle = VK_NULL_HANDLE;
+    VmaAllocator _allocator = VK_NULL_HANDLE;
+    VmaAllocation _allocation = nullptr;
 };
 
 }

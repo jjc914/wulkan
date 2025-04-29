@@ -1,14 +1,11 @@
 #ifndef wulkan_wk_DEBUG_MESSENGER_HPP
 #define wulkan_wk_DEBUG_MESSENGER_HPP
 
-#include <iostream>
-
-#include <vulkan/vulkan_core.h>
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-
 #include "wulkan_internal.hpp"
+
+#include <cstdlib>
+#include <cstdint>
+#include <iostream>
 
 namespace wk {
 
@@ -21,6 +18,18 @@ public:
     DebugMessengerCreateInfo& set_user_callback(PFN_vkDebugUtilsMessengerCallbackEXT callback) { _user_callback = callback; return *this; }
     DebugMessengerCreateInfo& set_user_data(void* user_data) { _user_data = user_data; return *this; }
     DebugMessengerCreateInfo& set_instance(VkInstance instance) { _instance = instance; return *this; }
+
+    VkDebugUtilsMessengerCreateInfoEXT to_vk_debug_messenger_create_info() {
+        VkDebugUtilsMessengerCreateInfoEXT ci{};
+        ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        ci.pNext = _pnext;
+        ci.flags = _flags;
+        ci.messageSeverity = _message_severity;
+        ci.messageType = _message_type;
+        ci.pfnUserCallback = _user_callback;
+        ci.pUserData = _user_data;
+        return ci;
+    }
 private:
     void* _pnext = nullptr;
     VkDebugUtilsMessengerCreateFlagsEXT _flags = 0;
@@ -35,46 +44,75 @@ private:
 
 class DebugMessenger {
 public:
-    DebugMessenger(const DebugMessengerCreateInfo& ci) {
-        _create_info = ci;
-
+    DebugMessenger(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT ci)
+        : _instance(instance) 
+    {
         if (!IsValidationLayersSupported()) {
             std::clog << "validation layers requested, but not available" << std::endl;
+            return;
         }
 
-        _vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(ci._instance, "vkCreateDebugUtilsMessengerEXT");
+        _vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT");
         if (_vkCreateDebugUtilsMessengerEXT == nullptr) {
-            std::cerr << "failed to create vkCreateDebugUtilsMessengerEXT function" << std::endl;;
+            std::cerr << "failed to create vkCreateDebugUtilsMessengerEXT function" << std::endl;
+            exit(-1);
         }
 
-        _vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(ci._instance, "vkDestroyDebugUtilsMessengerEXT");
-        if (_vkCreateDebugUtilsMessengerEXT == nullptr) {
-            std::cerr << "failed to create vkDestroyDebugUtilsMessengerEXT function" << std::endl;;
+        _vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
+        if (_vkDestroyDebugUtilsMessengerEXT == nullptr) {
+            std::cerr << "failed to create vkDestroyDebugUtilsMessengerEXT function" << std::endl;
+            exit(-1);
         }
 
-        VkDebugUtilsMessengerCreateInfoEXT vkci{};
-        vkci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        vkci.pNext = ci._pnext;
-        vkci.flags = ci._flags;
-        vkci.messageSeverity = ci._message_severity;
-        vkci.messageType = ci._message_type;
-        vkci.pfnUserCallback = ci._user_callback;
-        vkci.pUserData = ci._user_data;
-
-        if (_vkCreateDebugUtilsMessengerEXT(ci._instance, &vkci, nullptr, &_handle) != VK_SUCCESS) {
+        if (_vkCreateDebugUtilsMessengerEXT(_instance, &ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create debug messenger" << std::endl;
+            exit(-1);
         }
-        std::clog << "created debug messenger" << std::endl;
     }
 
     ~DebugMessenger() {
-        _vkDestroyDebugUtilsMessengerEXT(_create_info._instance, _handle, nullptr);
+        if (_handle != VK_NULL_HANDLE) {
+            _vkDestroyDebugUtilsMessengerEXT(_instance, _handle, nullptr);
+        }
+    }
+
+    DebugMessenger(const DebugMessenger&) = delete;
+    DebugMessenger& operator=(const DebugMessenger&) = delete;
+
+    DebugMessenger(DebugMessenger&& other) noexcept
+            : _handle(other._handle),
+              _vkCreateDebugUtilsMessengerEXT(other._vkCreateDebugUtilsMessengerEXT),
+              _vkDestroyDebugUtilsMessengerEXT(other._vkDestroyDebugUtilsMessengerEXT) {
+        other._handle = VK_NULL_HANDLE;
+        other._vkCreateDebugUtilsMessengerEXT = nullptr;
+        other._vkDestroyDebugUtilsMessengerEXT = nullptr;
+        other._instance = VK_NULL_HANDLE;
+    }
+
+    DebugMessenger& operator=(DebugMessenger&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                _vkDestroyDebugUtilsMessengerEXT(_instance, _handle, nullptr);
+            }
+
+            _handle = other._handle;
+            _vkCreateDebugUtilsMessengerEXT = other._vkCreateDebugUtilsMessengerEXT;
+            _vkDestroyDebugUtilsMessengerEXT = other._vkDestroyDebugUtilsMessengerEXT;
+            _instance = other._instance;
+
+            other._handle = VK_NULL_HANDLE;
+            other._vkCreateDebugUtilsMessengerEXT = nullptr;
+            other._vkDestroyDebugUtilsMessengerEXT = nullptr;
+            other._instance = VK_NULL_HANDLE;
+        }
+        return *this;
     }
 private:
-    DebugMessengerCreateInfo _create_info;
-    VkDebugUtilsMessengerEXT _handle;
-    PFN_vkCreateDebugUtilsMessengerEXT _vkCreateDebugUtilsMessengerEXT;
-    PFN_vkDestroyDebugUtilsMessengerEXT _vkDestroyDebugUtilsMessengerEXT;
+    VkDebugUtilsMessengerEXT _handle = VK_NULL_HANDLE;
+    PFN_vkCreateDebugUtilsMessengerEXT _vkCreateDebugUtilsMessengerEXT = nullptr;
+    PFN_vkDestroyDebugUtilsMessengerEXT _vkDestroyDebugUtilsMessengerEXT = nullptr;
+
+    VkInstance _instance = VK_NULL_HANDLE;
 };
 
 }
