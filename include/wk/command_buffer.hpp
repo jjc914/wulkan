@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -36,8 +36,7 @@ public:
         : _device(device), _command_pool(ai.commandPool)
     {
         if (vkAllocateCommandBuffers(_device, &ai, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to allocate command buffer" << std::endl;
-            std::exit(-1);
+            throw std::runtime_error("failed to allocate command buffer");
         }
     }
 

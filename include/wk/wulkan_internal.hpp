@@ -2,7 +2,7 @@
 #define wulkan_wk_WULKAN_INTERNAL_HPP
 
 #include <cstdint>
-#include <cstdlib>
+#include <stdexcept>
 #include <iostream>
 #include <vector>
 #include <filesystem>

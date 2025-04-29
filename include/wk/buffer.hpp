@@ -4,8 +4,8 @@
 #include "vma_include.hpp"
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -52,8 +52,7 @@ public:
         : _allocator(allocator)
     {
         if (vmaCreateBuffer(_allocator, &ci, &aci, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
-            std::cerr << "failed to create buffer" << std::endl;
-            std::exit(-1);
+            throw std::runtime_error("failed to create buffer");
         }
     }
 

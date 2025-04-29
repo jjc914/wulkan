@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -52,8 +52,7 @@ class PipelineLayout {
 public:
     PipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo& ci) : _device(device) {
         if (vkCreatePipelineLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create pipeline layout" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create pipeline layout");
         }
     }
 

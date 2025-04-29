@@ -34,7 +34,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DefaultDebugMessengerCallback(VkDebugUtilsMessage
                                                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                              void* pUserData) {
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        std::cerr << pCallbackData->pMessage << std::endl;
+        throw std::runtime_error(pCallbackData->pMessage);
     } else {
         std::clog << pCallbackData->pMessage << std::endl;
     }
@@ -181,7 +181,7 @@ std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
     char buf[PATH_MAX];
     uint32_t bufsize = PATH_MAX;
     if (_NSGetExecutablePath(buf, &bufsize) != 0) {
-        std::cerr << "failed to get executable path" << std::endl;
+        throw std::runtime_error("failed to get executable path");
     }
     bin_dir = buf;
     bin_dir.remove_filename();
@@ -189,7 +189,7 @@ std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
 
     std::ifstream file(bin_dir / file_name, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "failed to open shader" << std::endl;
+        throw std::runtime_error("failed to open shader");
     }
 
     size_t file_size = static_cast<size_t>(file.tellg());

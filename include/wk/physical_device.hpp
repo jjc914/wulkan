@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -20,8 +20,7 @@ public:
         uint32_t device_count = 0;
         vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
         if (device_count == 0) {
-            std::cerr << "failed to find GPUs with Vulkan support" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to find suitable gpu with vulkan support");
         }
         std::vector<VkPhysicalDevice> devices(device_count);
         vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
@@ -35,8 +34,7 @@ public:
         if (device_scores.rbegin()->first > 0) {
             _handle = device_scores.rbegin()->second;
         } else {
-            std::cerr << "failed to find a suitable GPU" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to find suitable gpu");
         }
 
         vkGetPhysicalDeviceProperties(_handle, &_properties);

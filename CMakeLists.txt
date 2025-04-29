@@ -13,6 +13,21 @@ add_library(VulkanMemoryAllocator INTERFACE)
 target_include_directories(VulkanMemoryAllocator INTERFACE vendor/VulkanMemoryAllocator/include)
 set(LIB_DEPENDENCIES ${LIB_DEPENDENCIES} VulkanMemoryAllocator)
 
+# ----------------
+# glfw extension library
+# ----------------
+add_library(${PROJECT_NAME}_glfw STATIC
+    "include/ext/glfw/glfw_internal.hpp" "src/ext/glfw_internal.cpp"
+    "include/ext/glfw/surface.hpp"
+)
+set_target_properties(${PROJECT_NAME}_glfw PROPERTIES LINKER_LANGUAGE CXX)
+target_compile_features(${PROJECT_NAME}_glfw PRIVATE cxx_std_17)
+target_include_directories(${PROJECT_NAME}_glfw PUBLIC "include")
+target_link_libraries(${PROJECT_NAME}_glfw PUBLIC Vulkan::Vulkan glfw)
+
+# ----------------
+# wulkan main library
+# ----------------
 add_library(${PROJECT_NAME} STATIC
     "include/wk/wulkan.hpp"
     "include/wk/wulkan_internal.hpp" "src/wulkan_internal.cpp"
@@ -31,19 +46,13 @@ add_library(${PROJECT_NAME} STATIC
     "include/wk/shader.hpp"
     "include/wk/pipeline_layout.hpp"
     "include/wk/pipeline.hpp"
-    
-    "include/ext/glfw/glfw_internal.hpp"
-    "include/ext/glfw/surface.hpp"
 )
-
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${Vulkan_INCLUDE_DIRS}
     "include"
     vendor/VulkanMemoryAllocator/include
 )
-
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIB_DEPENDENCIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_glfw)

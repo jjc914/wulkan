@@ -4,8 +4,8 @@
 #include "vma_include.hpp"
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -56,8 +56,7 @@ class Allocator {
 public:
     Allocator(const VmaAllocatorCreateInfo& ci) {
         if (vmaCreateAllocator(&ci, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create VMA allocator" << std::endl;
-            std::exit(-1);
+            throw std::runtime_error("failed to create vma allocator");
         }
     }
 

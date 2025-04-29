@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -225,21 +225,51 @@ public:
           _scissor(*ci.pViewportState->pScissors)
     {
         if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create graphics pipeline" << std::endl;
-            std::exit(-1);
+            throw std::runtime_error("failed to create graphics pipeline");
         }
     }
 
     ~Pipeline() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyPipeline(_device, _handle, nullptr);
+        Destroy();
+    }
+
+    Pipeline(const Pipeline&) = delete;
+    Pipeline& operator=(const Pipeline&) = delete;
+
+    Pipeline(Pipeline&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device),
+          _viewport(other._viewport),
+          _scissor(other._scissor)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    Pipeline& operator=(Pipeline&& other) noexcept {
+        if (this != &other) {
+            Destroy();
+            _handle = other._handle;
+            _device = other._device;
+            _viewport = other._viewport;
+            _scissor = other._scissor;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
         }
+        return *this;
     }
 
     VkPipeline handle() const { return _handle; }
     VkViewport viewport() const { return _viewport; }
     VkRect2D scissor() const { return _scissor; }
 private:
+    void Destroy() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyPipeline(_device, _handle, nullptr);
+            _handle = VK_NULL_HANDLE;
+        }
+    }
+
     VkPipeline _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
     VkViewport _viewport{};

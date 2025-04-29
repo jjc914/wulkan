@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -48,25 +48,21 @@ public:
         : _instance(instance) 
     {
         if (!IsValidationLayersSupported()) {
-            std::clog << "validation layers requested, but not available" << std::endl;
-            return;
+            throw std::runtime_error("validation layers requested, but not available");
         }
 
         _vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT");
         if (_vkCreateDebugUtilsMessengerEXT == nullptr) {
-            std::cerr << "failed to create vkCreateDebugUtilsMessengerEXT function" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create vkCreateDebugUtilsMessengerEXT function");
         }
 
         _vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
         if (_vkDestroyDebugUtilsMessengerEXT == nullptr) {
-            std::cerr << "failed to create vkDestroyDebugUtilsMessengerEXT function" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create vkDestroyDebugUtilsMessengerEXT function");
         }
 
         if (_vkCreateDebugUtilsMessengerEXT(_instance, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create debug messenger" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create debug messenger");
         }
     }
 

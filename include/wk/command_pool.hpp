@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -34,8 +34,7 @@ public:
         : _device(device)
     {
         if (vkCreateCommandPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create command pool" << std::endl;
-            std::exit(-1);
+            throw std::runtime_error("failed to create command pool");
         }
     }
 

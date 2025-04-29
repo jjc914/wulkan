@@ -3,8 +3,8 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -31,12 +31,12 @@ public:
 
         VkSubmitInfo si{};
         si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        si.waitSemaphoreCount = _wait_semaphores.size();
+        si.waitSemaphoreCount = static_cast<uint32_t>(_wait_semaphores.size());
         si.pWaitSemaphores = _wait_semaphores_vec.data();
         si.pWaitDstStageMask = _wait_stage_flags.data();
-        si.commandBufferCount = _command_buffers.size();
+        si.commandBufferCount = static_cast<uint32_t>(_command_buffers.size());
         si.pCommandBuffers = _command_buffers.data();
-        si.signalSemaphoreCount = _signal_semaphores.size();
+        si.signalSemaphoreCount = static_cast<uint32_t>(_signal_semaphores.size());
         si.pSignalSemaphores = _signal_semaphores.data();
         return si;
     }
@@ -76,10 +76,10 @@ public:
 
         VkDeviceCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        ci.queueCreateInfoCount = _queue_create_infos.size();
+        ci.queueCreateInfoCount = static_cast<uint32_t>(_queue_create_infos.size());
         ci.pQueueCreateInfos = _queue_create_infos.data();
         ci.pEnabledFeatures = &_features;
-        ci.enabledExtensionCount = (uint32_t)_extensions.size();
+        ci.enabledExtensionCount = static_cast<uint32_t>(_extensions.size());
         ci.ppEnabledExtensionNames = _extensions.data();
 #ifdef VLK_ENABLE_VALIDATION_LAYERS
         ci.enabledLayerCount = static_cast<uint32_t>(_layers.size());
@@ -102,8 +102,7 @@ class Device {
 public:
     Device(VkPhysicalDevice physical_device, QueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
         if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create logical device" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create logical device");
         }
         
         vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &_graphics_queue);
@@ -154,7 +153,7 @@ public:
         vkQueueSubmit(_graphics_queue, 1, &si, fence_to_signal);
     }
 
-    void PresentQueueSubmit(VkSwapchainKHR swapchain, uint32_t available_image_index, VkSemaphore semaphore_to_wait) {
+    bool PresentQueueSubmit(VkSwapchainKHR swapchain, uint32_t available_image_index, VkSemaphore semaphore_to_wait) {
         VkPresentInfoKHR present_info{};
         present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         present_info.waitSemaphoreCount = 1;
@@ -164,13 +163,12 @@ public:
         present_info.pImageIndices = &available_image_index;
 
         VkResult result = vkQueuePresentKHR(_present_queue, &present_info);
-        if (result == VK_ERROR_OUT_OF_DATE_KHR/* || _vlk_is_resized_framebuffer*/) {
-            // _vlk_is_resized_framebuffer = false;
-            // _vlk_update_swapchain();
-            std::cerr << "resize framebuffer" << std::endl;
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            return false;
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            std::cerr << "failed to acquire swap chain image" << std::endl;
+            throw std::runtime_error("failed to create logical device");
         }
+        return true;
     }
 
     VkDevice handle() const { return _handle; }

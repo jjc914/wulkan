@@ -4,8 +4,8 @@
 #include"wulkan_internal.hpp"
 #include "debug_messenger.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 
 namespace wk {
@@ -72,8 +72,7 @@ class Instance {
 public:
     Instance(const VkInstanceCreateInfo& ci) {
         if (vkCreateInstance(&ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create Vulkan instance" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create vulkan instance");
         }
     }
 

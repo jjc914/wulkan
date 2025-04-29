@@ -3,10 +3,11 @@
 
 #include "wulkan_internal.hpp"
 
-#include <cstdlib>
 #include <cstdint>
+#include <stdexcept>
 #include <iostream>
 #include <vector>
+#include <optional>
 
 namespace wk {
 
@@ -17,6 +18,7 @@ public:
     SwapchainCreateInfo& set_width(uint32_t width) { _width = width; return *this; }
     SwapchainCreateInfo& set_height(uint32_t height) { _height = height; return *this; }
     SwapchainCreateInfo& set_queue_family_indices(QueueFamilyIndices indices) { _queue_family_indices = indices; return *this; }
+    SwapchainCreateInfo& set_old_swapchain(VkSwapchainKHR old_swapchain) { _old_swapchain = old_swapchain; return *this; }
 
     VkSwapchainCreateInfoKHR to_vk_swapchain_create_info() {
         PhysicalDeviceSurfaceSupportDetails details = QueryPhysicalDeviceSurfaceSupport(_physical_device, _surface);
@@ -58,7 +60,7 @@ public:
         ci.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         ci.presentMode = present_mode;
         ci.clipped = VK_TRUE;
-        ci.oldSwapchain = VK_NULL_HANDLE;
+        ci.oldSwapchain = _old_swapchain;
 
         return ci;
     }
@@ -69,6 +71,7 @@ private:
     uint32_t _height = 0;
     QueueFamilyIndices _queue_family_indices{};
     std::vector<uint32_t> _queue_family_indices_vec{};
+    VkSwapchainKHR _old_swapchain = VK_NULL_HANDLE;
 };
 
 class Swapchain {
@@ -77,8 +80,7 @@ public:
         : _device(device)
     {
         if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create swapchain" << std::endl;
-            exit(-1);
+            throw std::runtime_error("failed to create swapchain");
         }
 
         uint32_t image_count = 0;
@@ -109,14 +111,13 @@ public:
             view_info.subresourceRange.layerCount = 1;
 
             if (vkCreateImageView(_device, &view_info, nullptr, &_image_views[i]) != VK_SUCCESS) {
-                std::cerr << "failed to create image views" << std::endl;
-                exit(-1);
+                throw std::runtime_error("failed to create image views");
             }
         }
     }
 
     ~Swapchain() {
-        cleanup();
+        Destroy();
     }
 
     Swapchain(const Swapchain&) = delete;
@@ -136,7 +137,7 @@ public:
 
     Swapchain& operator=(Swapchain&& other) noexcept {
         if (this != &other) {
-            cleanup();
+            Destroy();
 
             _handle = other._handle;
             _device = other._device;
@@ -151,13 +152,13 @@ public:
         return *this;
     }
 
-    uint32_t AcquireNextImageIndex(uint64_t timeout, VkSemaphore semaphore_to_signal, VkFence fence_to_signal) const {
+    std::optional<uint32_t> AcquireNextImageIndex(uint64_t timeout, VkSemaphore semaphore_to_signal, VkFence fence_to_signal) const {
         uint32_t image_index = 0;
         VkResult result = vkAcquireNextImageKHR(_device, _handle, timeout, semaphore_to_signal, fence_to_signal, &image_index);
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            std::cerr << "swapchain resize needed" << std::endl;
+            return {};
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            std::cerr << "failed to acquire swap chain image" << std::endl;
+            throw std::runtime_error("failed to acquire swapchain image");
         }
         return image_index;
     }
@@ -167,7 +168,7 @@ public:
     const std::vector<VkImageView>& image_views() const { return _image_views; }
     VkExtent2D extent() const { return _extent; }
 private:
-    void cleanup() {
+    void Destroy() {
         for (size_t i = 0; i < _image_views.size(); ++i) {
             if (_image_views[i] != VK_NULL_HANDLE) {
                 vkDestroyImageView(_device, _image_views[i], nullptr);
