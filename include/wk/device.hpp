@@ -49,6 +49,29 @@ private:
     std::vector<VkPipelineStageFlags> _wait_stage_flags{};
 };
 
+class PresentInfo {
+public:
+    PresentInfo& set_wait_semaphores(const std::vector<VkSemaphore>& semaphores) { _wait_semaphores = semaphores; return *this;}
+    PresentInfo& set_swapchains(const std::vector<VkSwapchainKHR>& swapchains) { _swapchains = swapchains; return *this;}
+    PresentInfo& set_image_indices(const std::vector<uint32_t>& indices) { _image_indices = indices; return *this;}
+
+    VkPresentInfoKHR to_vk_present_info() {
+        VkPresentInfoKHR pi{};
+        pi.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        pi.waitSemaphoreCount = static_cast<uint32_t>(_wait_semaphores.size());
+        pi.pWaitSemaphores = _wait_semaphores.data();
+        pi.swapchainCount = static_cast<uint32_t>(_swapchains.size());
+        pi.pSwapchains = _swapchains.data();
+        pi.pImageIndices = _image_indices.data();
+        pi.pResults = nullptr;
+        return pi;
+    }
+private:
+    std::vector<VkSemaphore> _wait_semaphores;
+    std::vector<VkSwapchainKHR> _swapchains;
+    std::vector<uint32_t> _image_indices;
+};
+
 class DeviceCreateInfo {
 public:
     DeviceCreateInfo& set_extensions(const std::vector<const char*>& extensions) { _extensions = extensions; return *this; }
@@ -141,39 +164,9 @@ public:
         return *this;
     }
 
-    void AwaitIdle() const {
-        vkDeviceWaitIdle(_handle);
-    }
-
-    void GraphicsQueueAwaitIdle() const {
-        vkQueueWaitIdle(_graphics_queue);
-    }
-
-    void GraphicsQueueSubmit(const VkSubmitInfo& si, VkFence fence_to_signal) {
-        vkQueueSubmit(_graphics_queue, 1, &si, fence_to_signal);
-    }
-
-    bool PresentQueueSubmit(VkSwapchainKHR swapchain, uint32_t available_image_index, VkSemaphore semaphore_to_wait) {
-        VkPresentInfoKHR present_info{};
-        present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        present_info.waitSemaphoreCount = 1;
-        present_info.pWaitSemaphores = &semaphore_to_wait;
-        present_info.swapchainCount = 1;
-        present_info.pSwapchains = &swapchain;
-        present_info.pImageIndices = &available_image_index;
-
-        VkResult result = vkQueuePresentKHR(_present_queue, &present_info);
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            return false;
-        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("failed to create logical device");
-        }
-        return true;
-    }
-
-    VkDevice handle() const { return _handle; }
-    VkQueue graphics_queue() const { return _graphics_queue; }
-    VkQueue present_queue() const { return _present_queue; }
+    const VkDevice& handle() const { return _handle; }
+    const VkQueue& graphics_queue() const { return _graphics_queue; }
+    const VkQueue& present_queue() const { return _present_queue; }
 private:
     VkDevice _handle;
     VkQueue _graphics_queue;

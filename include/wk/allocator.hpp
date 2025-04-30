@@ -86,8 +86,7 @@ public:
         return *this;
     }
 
-    VmaAllocator handle() const { return _handle; }
-
+    const VmaAllocator& handle() const { return _handle; }
 private:
     VmaAllocator _handle = VK_NULL_HANDLE;
 };

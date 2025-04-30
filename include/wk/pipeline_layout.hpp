@@ -30,22 +30,28 @@ private:
 
 class PipelineLayoutCreateInfo {
 public:
-    PipelineLayoutCreateInfo& set_push_constant_ranges(std::vector<VkPushConstantRange> ranges) {
+    PipelineLayoutCreateInfo& set_push_constant_ranges(const std::vector<VkPushConstantRange>& ranges) {
         _push_constant_ranges = ranges;
+        return *this;
+    }
+
+    PipelineLayoutCreateInfo& set_set_layouts(const std::vector<VkDescriptorSetLayout>& set_layouts) {
+        _set_layouts = set_layouts;
         return *this;
     }
 
     VkPipelineLayoutCreateInfo to_vk_pipeline_layout_create_info() {
         VkPipelineLayoutCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        ci.setLayoutCount = 0;
-        ci.pSetLayouts = nullptr;
+        ci.setLayoutCount = static_cast<uint32_t>(_set_layouts.size());
+        ci.pSetLayouts = _set_layouts.data();
         ci.pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size());
         ci.pPushConstantRanges = _push_constant_ranges.data();
         return ci;
     }
 private:
-    std::vector<VkPushConstantRange> _push_constant_ranges;
+    std::vector<VkPushConstantRange> _push_constant_ranges{};
+    std::vector<VkDescriptorSetLayout> _set_layouts{};
 };
 
 class PipelineLayout {
@@ -84,7 +90,7 @@ public:
         return *this;
     }
 
-    VkPipelineLayout handle() const { return _handle; }
+    const VkPipelineLayout& handle() const { return _handle; }
 private:
     VkPipelineLayout _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

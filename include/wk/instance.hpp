@@ -64,8 +64,6 @@ private:
     VkInstanceCreateFlags _flags = 0;
     std::vector<const char*> _extensions;
     std::vector<const char*> _layers;
-
-    friend class Instance;
 };
 
 class Instance {
@@ -101,7 +99,7 @@ public:
         return *this;
     }
 
-    VkInstance handle() const { return _handle; }
+    const VkInstance& handle() const { return _handle; }
 private:
     VkInstance _handle = VK_NULL_HANDLE;
 };

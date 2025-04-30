@@ -89,9 +89,8 @@ public:
         return *this;
     }
 
-    VkBuffer handle() const { return _handle; }
-    const VkBuffer* phandle() const { return &_handle; }
-    VmaAllocation allocation() const { return _allocation; }
+    const VkBuffer& handle() const { return _handle; }
+    const VmaAllocation& allocation() const { return _allocation; }
 
 private:
     VkBuffer _handle = VK_NULL_HANDLE;

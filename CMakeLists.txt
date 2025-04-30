@@ -46,6 +46,7 @@ add_library(${PROJECT_NAME} STATIC
     "include/wk/shader.hpp"
     "include/wk/pipeline_layout.hpp"
     "include/wk/pipeline.hpp"
+    "include/wk/descriptor_set_layout.hpp"
 )
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)

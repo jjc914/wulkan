@@ -17,15 +17,14 @@ public:
     }
 
     VkCommandPoolCreateInfo to_vk_command_pool_create_info() {
-        _create_info = {};
-        _create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        _create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        _create_info.queueFamilyIndex = _queue_family_indices.graphics_family.value();
-        return _create_info;
+        VkCommandPoolCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        ci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        ci.queueFamilyIndex = _queue_family_indices.graphics_family.value();
+        return ci;
     }
 private:
     QueueFamilyIndices _queue_family_indices{};
-    VkCommandPoolCreateInfo _create_info{};
 };
 
 class CommandPool {
@@ -68,7 +67,7 @@ public:
         return *this;
     }
 
-    VkCommandPool handle() const { return _handle; }
+    const VkCommandPool& handle() const { return _handle; }
 private:
     VkCommandPool _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

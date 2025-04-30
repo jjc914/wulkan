@@ -9,6 +9,70 @@
 
 namespace wk {
 
+class BufferCopy {
+public:
+    BufferCopy& set_src_offset(VkDeviceSize src_offset) { _src_offset = src_offset; return *this; }
+    BufferCopy& set_dst_offset(VkDeviceSize dst_offset) { _dst_offset = dst_offset; return *this; }
+    BufferCopy& set_size(VkDeviceSize size) { _size = size; return *this; }
+
+    VkBufferCopy to_vk_buffer_copy() {
+        VkBufferCopy copy{};
+        copy.srcOffset = _src_offset;
+        copy.dstOffset = _dst_offset;
+        copy.size = _size;
+        return copy;
+    }
+private:
+    VkDeviceSize _src_offset = 0;
+    VkDeviceSize _dst_offset = 0;
+    VkDeviceSize _size = 0;
+};
+
+class CommandBufferBeginInfo {
+public:
+    CommandBufferBeginInfo& set_flags(VkCommandBufferUsageFlags flags) { _flags = flags; return *this; }
+    CommandBufferBeginInfo& set_inheritance_info(const VkCommandBufferInheritanceInfo* inheritance_info) { 
+        _inheritance_info = inheritance_info; 
+        return *this; 
+    }
+
+    VkCommandBufferBeginInfo to_vk_command_buffer_begin_info() {
+        VkCommandBufferBeginInfo bi{};
+        bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        bi.flags = _flags;
+        bi.pInheritanceInfo = _inheritance_info;
+        return bi;
+    }
+private:
+    VkCommandBufferUsageFlags _flags = 0;
+    const VkCommandBufferInheritanceInfo* _inheritance_info = nullptr;
+};
+
+class RenderPassBeginInfo {
+public:
+    RenderPassBeginInfo& set_render_pass(VkRenderPass render_pass) { _render_pass = render_pass; return *this;}
+    RenderPassBeginInfo& set_framebuffer(VkFramebuffer framebuffer) { _framebuffer = framebuffer; return *this;}
+    RenderPassBeginInfo& set_render_area(VkRect2D render_area) { _render_area = render_area; return *this;}
+    RenderPassBeginInfo& set_clear_values(const std::vector<VkClearValue>& clear_values) { _clear_values = clear_values; return *this;}
+
+    VkRenderPassBeginInfo to_vk_render_pass_begin_info() {
+        VkRenderPassBeginInfo bi{};
+        bi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        bi.renderPass = _render_pass;
+        bi.framebuffer = _framebuffer;
+        bi.renderArea = _render_area;
+        bi.clearValueCount = static_cast<uint32_t>(_clear_values.size());
+        bi.pClearValues = _clear_values.data();
+        return bi;
+    }
+
+private:
+    VkRenderPass _render_pass = VK_NULL_HANDLE;
+    VkFramebuffer _framebuffer = VK_NULL_HANDLE;
+    VkRect2D _render_area{};
+    std::vector<VkClearValue> _clear_values{};
+};
+
 class CommandBufferAllocateInfo {
 public:
     CommandBufferAllocateInfo& set_command_pool(VkCommandPool command_pool) { 
@@ -17,17 +81,16 @@ public:
     }
 
     VkCommandBufferAllocateInfo to_vk_command_buffer_allocate_info() {
-        _allocate_info = {};
-        _allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        _allocate_info.commandPool = _command_pool;
-        _allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        _allocate_info.commandBufferCount = 1;
-        return _allocate_info;
+        VkCommandBufferAllocateInfo ai{};
+        ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        ai.commandPool = _command_pool;
+        ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        ai.commandBufferCount = 1;
+        return ai;
     }
 
 private:
     VkCommandPool _command_pool = VK_NULL_HANDLE;
-    VkCommandBufferAllocateInfo _allocate_info{};
 };
 
 class CommandBuffer {
@@ -74,68 +137,7 @@ public:
         return *this;
     }
 
-    void Reset() {
-        vkResetCommandBuffer(_handle, 0);
-    }
-
-    void BeginRecord(VkCommandBufferUsageFlags flags = 0) {
-        VkCommandBufferBeginInfo begin_info{};
-        begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        begin_info.flags = flags;
-
-        if (vkBeginCommandBuffer(_handle, &begin_info) != VK_SUCCESS) {
-            std::cerr << "failed to begin recording command buffer" << std::endl;
-        }
-    }
-
-    void EndRecord() {
-        if (vkEndCommandBuffer(_handle) != VK_SUCCESS) {
-            std::cerr << "failed to record command buffer" << std::endl;
-        }
-    }
-
-    void BeginRenderPass(VkFramebuffer framebuffer, VkRenderPass render_pass, VkExtent2D extent, VkClearValue clear_color) {
-        VkRenderPassBeginInfo render_pass_info{};
-        render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        render_pass_info.renderPass = render_pass;
-        render_pass_info.framebuffer = framebuffer;
-        render_pass_info.renderArea.offset = { 0, 0 };
-        render_pass_info.renderArea.extent = extent;
-        render_pass_info.clearValueCount = 1;
-        render_pass_info.pClearValues = &clear_color;
-        
-        vkCmdBeginRenderPass(_handle, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-    }
-
-    void EndRenderPass() {
-        vkCmdEndRenderPass(_handle);
-    }
-
-    void BindPipeline(VkPipeline pipeline) {
-        vkCmdBindPipeline(_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-    }
-
-    void SetViewport(VkViewport viewport) {
-        vkCmdSetViewport(_handle, 0, 1, &viewport);
-    }
-
-    void SetScissor(VkRect2D scissor) {
-        vkCmdSetScissor(_handle, 0, 1, &scissor);
-    }
-
-    void CopyBuffer(VkBuffer source, VkBuffer dest, VkDeviceSize size) {
-        VkBufferCopy copy_region{};
-        copy_region.srcOffset = 0;
-        copy_region.dstOffset = 0;
-        copy_region.size = size;
-        vkCmdCopyBuffer(_handle, source, dest, 1, &copy_region);
-    }
-
-    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags stage_flags, uint32_t offset, uint32_t size, void* values) {
-        vkCmdPushConstants(_handle, layout, stage_flags, offset, size, values);
-    }
-
-    VkCommandBuffer handle() const { return _handle; }
+    const VkCommandBuffer& handle() const { return _handle; }
 private:
     VkCommandBuffer _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

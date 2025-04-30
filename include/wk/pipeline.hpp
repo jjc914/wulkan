@@ -259,9 +259,9 @@ public:
         return *this;
     }
 
-    VkPipeline handle() const { return _handle; }
-    VkViewport viewport() const { return _viewport; }
-    VkRect2D scissor() const { return _scissor; }
+    const VkPipeline& handle() const { return _handle; }
+    const VkViewport& viewport() const { return _viewport; }
+    const VkRect2D& scissor() const { return _scissor; }
 private:
     void Destroy() {
         if (_handle != VK_NULL_HANDLE) {

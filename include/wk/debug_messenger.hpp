@@ -38,8 +38,6 @@ private:
     PFN_vkDebugUtilsMessengerCallbackEXT _user_callback = nullptr;
     void* _user_data = nullptr;
     VkInstance _instance = VK_NULL_HANDLE;
-
-    friend class DebugMessenger;
 };
 
 class DebugMessenger {

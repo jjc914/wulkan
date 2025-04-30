@@ -16,6 +16,9 @@
 #include "shader.hpp"
 #include "pipeline_layout.hpp"
 #include "pipeline.hpp"
+#include "descriptor_pool.hpp"
+#include "descriptor_set_layout.hpp"
+#include "descriptor_set.hpp"
 
 #include "allocator.hpp"
 #include "buffer.hpp"

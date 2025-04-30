@@ -100,7 +100,7 @@ public:
         return *this;
     }
 
-    VkRenderPass handle() const { return _handle; }
+    const VkRenderPass& handle() const { return _handle; }
 private:
     VkRenderPass _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

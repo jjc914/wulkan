@@ -152,21 +152,10 @@ public:
         return *this;
     }
 
-    std::optional<uint32_t> AcquireNextImageIndex(uint64_t timeout, VkSemaphore semaphore_to_signal, VkFence fence_to_signal) const {
-        uint32_t image_index = 0;
-        VkResult result = vkAcquireNextImageKHR(_device, _handle, timeout, semaphore_to_signal, fence_to_signal, &image_index);
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            return {};
-        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("failed to acquire swapchain image");
-        }
-        return image_index;
-    }
-
-    VkSwapchainKHR handle() const { return _handle; }
-    VkFormat image_format() const { return _image_format; }
+    const VkSwapchainKHR& handle() const { return _handle; }
+    const VkFormat& image_format() const { return _image_format; }
     const std::vector<VkImageView>& image_views() const { return _image_views; }
-    VkExtent2D extent() const { return _extent; }
+    const VkExtent2D& extent() const { return _extent; }
 private:
     void Destroy() {
         for (size_t i = 0; i < _image_views.size(); ++i) {

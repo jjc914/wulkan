@@ -68,7 +68,7 @@ public:
         return *this;
     }
 
-    VkShaderModule handle() const { return _handle; }
+    const VkShaderModule& handle() const { return _handle; }
 private:
     VkShaderModule _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

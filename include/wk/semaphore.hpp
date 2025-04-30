@@ -58,7 +58,7 @@ public:
         return *this;
     }
 
-    VkSemaphore handle() const { return _handle; }
+    const VkSemaphore& handle() const { return _handle; }
 private:
     VkSemaphore _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

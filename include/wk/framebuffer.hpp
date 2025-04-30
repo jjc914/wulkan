@@ -76,7 +76,7 @@ public:
         return *this;
     }
 
-    VkFramebuffer handle() const { return _handle; }
+    const VkFramebuffer& handle() const { return _handle; }
 private:
     VkFramebuffer _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

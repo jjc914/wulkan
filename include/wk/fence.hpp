@@ -66,15 +66,7 @@ public:
         return *this;
     }
 
-    void Await() const {
-        vkWaitForFences(_device, 1, &_handle, VK_TRUE, UINT64_MAX);
-    }
-
-    void Reset() const {
-        vkResetFences(_device, 1, &_handle);
-    }
-
-    VkFence handle() const { return _handle; }
+    const VkFence& handle() const { return _handle; }
 private:
     VkFence _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

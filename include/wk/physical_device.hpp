@@ -42,9 +42,9 @@ public:
         _queue_family_indices = FindQueueFamilies(_handle, surface);
     }
 
-    VkPhysicalDevice handle() const { return _handle; }
-    VkPhysicalDeviceFeatures features() const { return _features; }
-    QueueFamilyIndices queue_family_indices() const { return _queue_family_indices; }
+    const VkPhysicalDevice& handle() const { return _handle; }
+    const VkPhysicalDeviceFeatures& features() const { return _features; }
+    const QueueFamilyIndices& queue_family_indices() const { return _queue_family_indices; }
     const std::vector<const char*>& extensions() const { return _extensions; }
 private:
     VkPhysicalDevice _handle = VK_NULL_HANDLE;
