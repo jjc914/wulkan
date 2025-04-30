@@ -26,19 +26,14 @@ private:
 
 class DescriptorPoolCreateInfo {
 public:
-    DescriptorPoolCreateInfo& set_max_sets(uint32_t max_sets) {
-        _max_sets = max_sets;
-        return *this;
-    }
-
-    DescriptorPoolCreateInfo& set_pool_sizes(std::vector<VkDescriptorPoolSize> pool_sizes) {
-        _pool_sizes = std::move(pool_sizes);
-        return *this;
-    }
+    DescriptorPoolCreateInfo& set_flags(VkDescriptorPoolCreateFlags flags) { _flags = flags; return *this; }
+    DescriptorPoolCreateInfo& set_max_sets(uint32_t max_sets) { _max_sets = max_sets; return *this; }
+    DescriptorPoolCreateInfo& set_pool_sizes(const std::vector<VkDescriptorPoolSize>& pool_sizes) { _pool_sizes = pool_sizes; return *this; }
 
     VkDescriptorPoolCreateInfo to_vk_descriptor_pool_create_info() {
         VkDescriptorPoolCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        ci.flags = _flags;
         ci.poolSizeCount = static_cast<uint32_t>(_pool_sizes.size());
         ci.pPoolSizes = _pool_sizes.data();
         ci.maxSets = _max_sets;
@@ -47,6 +42,7 @@ public:
 private:
     uint32_t _max_sets = 0;
     std::vector<VkDescriptorPoolSize> _pool_sizes;
+    VkDescriptorPoolCreateFlags _flags;
 };
 
 class DescriptorPool {

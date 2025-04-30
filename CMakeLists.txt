@@ -1,37 +1,39 @@
 cmake_minimum_required(VERSION 3.5)
 
-set(PROJECT_NAME wulkan)
+project(wulkan LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) 
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(${PROJECT_NAME} LANGUAGES CXX)
+# Central output directory for all executables
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-find_package(Vulkan REQUIRED)
-set(LIB_DEPENDENCIES ${LIB_DEPENDENCIES} ${Vulkan_LIBRARIES})
+# Options
+option(WULKAN_ENABLE_GLFW "Build wulkan_glfw extension" ON)
+option(WULKAN_BUILD_EXAMPLES "Build the example applications" OFF)
 
-add_library(VulkanMemoryAllocator INTERFACE)
-target_include_directories(VulkanMemoryAllocator INTERFACE vendor/VulkanMemoryAllocator/include)
-set(LIB_DEPENDENCIES ${LIB_DEPENDENCIES} VulkanMemoryAllocator)
-
-# ----------------
-# glfw extension library
-# ----------------
-add_library(${PROJECT_NAME}_glfw STATIC
-    "include/ext/glfw/glfw_internal.hpp" "src/ext/glfw_internal.cpp"
-    "include/ext/glfw/surface.hpp"
-)
-set_target_properties(${PROJECT_NAME}_glfw PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_features(${PROJECT_NAME}_glfw PRIVATE cxx_std_17)
-target_include_directories(${PROJECT_NAME}_glfw PUBLIC "include")
-target_link_libraries(${PROJECT_NAME}_glfw PUBLIC Vulkan::Vulkan glfw)
+# Module path and shared deps
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(CMakeDeps)
 
 # ----------------
-# wulkan main library
+# wulkan_glfw extension
 # ----------------
-add_library(${PROJECT_NAME} STATIC
+if(WULKAN_ENABLE_GLFW)
+    add_library(wulkan_glfw STATIC
+        "include/ext/glfw/glfw_internal.hpp" "src/ext/glfw_internal.cpp"
+        "include/ext/glfw/surface.hpp"
+    )
+    target_include_directories(wulkan_glfw PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    target_link_libraries(wulkan_glfw PUBLIC Vulkan::Vulkan glfw)
+endif()
+
+# ----------------
+# main library
+# ----------------
+add_library(wulkan STATIC
     "include/wk/wulkan.hpp"
     "include/wk/wulkan_internal.hpp" "src/wulkan_internal.cpp"
-    "include/wk/vma_include.hpp" "src/vma_include.cpp"
+    "include/wk/vma_include.hpp"     "src/vma_include.cpp"
     "include/wk/instance.hpp"
     "include/wk/debug_messenger.hpp"
     "include/wk/physical_device.hpp"
@@ -48,12 +50,18 @@ add_library(${PROJECT_NAME} STATIC
     "include/wk/pipeline.hpp"
     "include/wk/descriptor_set_layout.hpp"
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ${Vulkan_INCLUDE_DIRS}
-    "include"
-    vendor/VulkanMemoryAllocator/include
-)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIB_DEPENDENCIES})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_glfw)
+# target_include_directories(wulkan PUBLIC ${Vulkan_INCLUDE_DIRS})
+target_include_directories(wulkan PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(wulkan PRIVATE Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator)
+
+if(WULKAN_ENABLE_GLFW)
+    target_link_libraries(wulkan PRIVATE wulkan_glfw)
+endif()
+
+# ----------------
+# examples
+# ----------------
+if(WULKAN_BUILD_EXAMPLES AND PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    message(STATUS "Building examples")
+    add_subdirectory("examples/1")
+endif()
