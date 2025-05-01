@@ -149,8 +149,20 @@ VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& av
             return available_format;
         }
     }
-
+    std::cerr << "failed to find recommended surface format" << std::endl;
     return available_formats[0];
+}
+
+VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<VkFormat>& requested_formats) {
+    for (VkFormat format : requested_formats) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(physical_device, format, &props);
+
+        if (props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+            return format;
+        }
+    }
+    throw std::runtime_error("failed to find supported depth format");
 }
 
 VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKHR>& available_present_modes) {

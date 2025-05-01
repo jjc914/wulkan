@@ -77,7 +77,7 @@ private:
 class Swapchain {
 public:
     Swapchain(VkDevice device, const VkSwapchainCreateInfoKHR& ci)
-        : _device(device)
+        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent)
     {
         if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swapchain");
@@ -87,9 +87,6 @@ public:
         vkGetSwapchainImagesKHR(_device, _handle, &image_count, nullptr);
         _images.resize(image_count);
         vkGetSwapchainImagesKHR(_device, _handle, &image_count, _images.data());
-
-        _image_format = ci.imageFormat;
-        _extent = ci.imageExtent;
 
         _image_views.resize(_images.size());
         for (size_t i = 0; i < _images.size(); ++i) {
@@ -154,6 +151,7 @@ public:
 
     const VkSwapchainKHR& handle() const { return _handle; }
     const VkFormat& image_format() const { return _image_format; }
+    const VkFormat& depth_format() const { return _depth_format; }
     const std::vector<VkImageView>& image_views() const { return _image_views; }
     const VkExtent2D& extent() const { return _extent; }
 private:
@@ -172,6 +170,7 @@ private:
     VkDevice _device = VK_NULL_HANDLE;
     std::vector<VkImage> _images;
     VkFormat _image_format;
+    VkFormat _depth_format;
     VkExtent2D _extent;
     std::vector<VkImageView> _image_views;
 };

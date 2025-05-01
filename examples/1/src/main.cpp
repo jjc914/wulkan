@@ -108,6 +108,8 @@ int main() {
     wk::RenderPass render_pass(device.handle(), 
         wk::RenderPassCreateInfo{}
             .set_image_format(swapchain.image_format())
+            .set_depth_format(swapchain.depth_format())
+            .set_samples(VK_SAMPLE_COUNT_1_BIT)
             .to_vk_render_pass_create_info()
     );
 

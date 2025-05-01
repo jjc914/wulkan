@@ -11,12 +11,14 @@ namespace wk {
 
 class RenderPassCreateInfo {
 public:
-    RenderPassCreateInfo& set_image_format(VkFormat image_format) { _image_format = image_format; return *this; }
+    RenderPassCreateInfo& set_image_format(VkFormat format) { _color_format = format; return *this; }
+    RenderPassCreateInfo& set_depth_format(VkFormat format) { _depth_format = format; return *this; }
+    RenderPassCreateInfo& set_samples(VkSampleCountFlagBits samples) { _samples = samples; return *this; }
 
     VkRenderPassCreateInfo to_vk_render_pass_create_info() {
         _attachment_description = {};
-        _attachment_description.format = _image_format;
-        _attachment_description.samples = VK_SAMPLE_COUNT_1_BIT;
+        _attachment_description.format = _color_format;
+        _attachment_description.samples = _samples;
         _attachment_description.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         _attachment_description.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         _attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -53,7 +55,9 @@ public:
         return ci;
     }
 private:
-    VkFormat _image_format = VK_FORMAT_UNDEFINED;
+    VkFormat _color_format = VK_FORMAT_UNDEFINED;
+    VkFormat _depth_format = VK_FORMAT_UNDEFINED;
+    VkSampleCountFlagBits _samples = VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
 
     VkAttachmentDescription _attachment_description{};
     VkAttachmentReference _attachment_reference{};
