@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(wulkan LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Central output directory for all executables
@@ -39,6 +39,8 @@ add_library(wulkan STATIC
     "include/wk/physical_device.hpp"
     "include/wk/device.hpp"
     "include/wk/swapchain.hpp"
+    "include/wk/image_view.hpp"
+    "include/wk/image.hpp"
     "include/wk/render_pass.hpp"
     "include/wk/framebuffer.hpp"
     "include/wk/command_pool.hpp"

@@ -19,6 +19,7 @@
 #include "descriptor_pool.hpp"
 #include "descriptor_set_layout.hpp"
 #include "descriptor_set.hpp"
+#include "image.hpp"
 
 #include "allocator.hpp"
 #include "buffer.hpp"

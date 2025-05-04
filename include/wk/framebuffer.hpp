@@ -11,30 +11,41 @@ namespace wk {
 
 class FramebufferCreateInfo {
 public:
-    FramebufferCreateInfo& set_image_view(VkImageView image_view) { 
-        _attachments.clear();
-        _attachments.push_back(image_view);
-        return *this; 
-    }
+    FramebufferCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    FramebufferCreateInfo& set_flags(VkFramebufferCreateFlags flags) { _flags = flags; return *this; }
     FramebufferCreateInfo& set_render_pass(VkRenderPass render_pass) { _render_pass = render_pass; return *this; }
+    FramebufferCreateInfo& set_attachments(uint32_t attachment_count, const VkImageView* p_attachments) {
+        _attachment_count = attachment_count;
+        _p_attachments = p_attachments;
+        return *this;
+    }
     FramebufferCreateInfo& set_extent(VkExtent2D extent) { _extent = extent; return *this; }
+    FramebufferCreateInfo& set_layers(uint32_t layers) { _layers = layers; return *this; }
 
-    VkFramebufferCreateInfo to_vk_framebuffer_create_info() {
+    VkFramebufferCreateInfo to_vk_framebuffer_create_info() const {
         VkFramebufferCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
         ci.renderPass = _render_pass;
-        ci.attachmentCount = static_cast<uint32_t>(_attachments.size());
-        ci.pAttachments = _attachments.data();
+        ci.attachmentCount = _attachment_count;
+        ci.pAttachments = _p_attachments;
         ci.width = _extent.width;
         ci.height = _extent.height;
-        ci.layers = 1;
+        ci.layers = _layers;
         return ci;
     }
+
 private:
+    const void* _p_next = nullptr;
+    VkFramebufferCreateFlags _flags = 0;
     VkRenderPass _render_pass = VK_NULL_HANDLE;
-    std::vector<VkImageView> _attachments{};
+    uint32_t _attachment_count = 0;
+    const VkImageView* _p_attachments = nullptr;
     VkExtent2D _extent{};
+    uint32_t _layers = 1;
 };
+        
 
 class Framebuffer {
 public:
@@ -42,7 +53,7 @@ public:
         : _device(device)
     {
         if (vkCreateFramebuffer(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer");
+            std::cerr << "failed to create framebuffer" << std::endl;
         }
     }
 

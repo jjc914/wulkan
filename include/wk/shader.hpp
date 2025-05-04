@@ -11,22 +11,31 @@ namespace wk {
 
 class ShaderCreateInfo {
 public:
-    ShaderCreateInfo& set_byte_code(std::vector<uint8_t> byte_code) {
-        _byte_code = byte_code;
+    ShaderCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    ShaderCreateInfo& set_flags(VkShaderModuleCreateFlags flags) { _flags = flags; return *this; }
+    ShaderCreateInfo& set_byte_code(size_t size, const void* p_code) { 
+        _code_size = size;
+        _p_code = p_code;
         return *this;
     }
 
-    VkShaderModuleCreateInfo to_vk_shader_module_create_info() {
-        _vkci = {};
-        _vkci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        _vkci.codeSize = _byte_code.size();
-        _vkci.pCode = reinterpret_cast<const uint32_t*>(_byte_code.data());
-        return _vkci;
+    VkShaderModuleCreateInfo to_vk_shader_module_create_info() const {
+        VkShaderModuleCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.codeSize = _code_size;
+        ci.pCode = reinterpret_cast<const uint32_t*>(_p_code);
+        return ci;
     }
+
 private:
-    std::vector<uint8_t> _byte_code{};
-    VkShaderModuleCreateInfo _vkci{};
+    const void* _p_next = nullptr;
+    VkShaderModuleCreateFlags _flags = 0;
+    size_t _code_size = 0;
+    const void* _p_code = nullptr;
 };
+        
 
 class Shader {
 public:
@@ -34,7 +43,7 @@ public:
         : _device(device)
     {
         if (vkCreateShaderModule(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create shader module");
+            std::cerr << "failed to create shader module" << std::endl;
         }
     }
 

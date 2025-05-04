@@ -11,21 +11,25 @@ namespace wk {
 
 class CommandPoolCreateInfo {
 public:
-    CommandPoolCreateInfo& set_queue_family_indices(QueueFamilyIndices queue_family_indices) { 
-        _queue_family_indices = queue_family_indices; 
-        return *this; 
-    }
+    CommandPoolCreateInfo& set_flags(VkCommandPoolCreateFlags flags) { _flags = flags; return *this; }
+    CommandPoolCreateInfo& set_queue_family_index(uint32_t queue_family_index) { _queue_family_index = queue_family_index; return *this; }
+    CommandPoolCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
 
-    VkCommandPoolCreateInfo to_vk_command_pool_create_info() {
+    VkCommandPoolCreateInfo to_vk_command_pool_create_info() const {
         VkCommandPoolCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        ci.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        ci.queueFamilyIndex = _queue_family_indices.graphics_family.value();
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.queueFamilyIndex = _queue_family_index;
         return ci;
     }
+
 private:
-    QueueFamilyIndices _queue_family_indices{};
+    const void* _p_next = nullptr;
+    VkCommandPoolCreateFlags _flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    uint32_t _queue_family_index = 0;
 };
+        
 
 class CommandPool {
 public:
@@ -33,7 +37,7 @@ public:
         : _device(device)
     {
         if (vkCreateCommandPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create command pool");
+            std::cerr << "failed to create command pool" << std::endl;
         }
     }
 
@@ -68,6 +72,7 @@ public:
     }
 
     const VkCommandPool& handle() const { return _handle; }
+    
 private:
     VkCommandPool _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

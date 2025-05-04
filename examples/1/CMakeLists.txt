@@ -1,5 +1,5 @@
 project(example1_basic LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ----------------
@@ -19,24 +19,25 @@ target_link_libraries(imgui PRIVATE glfw Vulkan::Vulkan)
 # executable
 # ----------------
 add_executable(example1_basic src/main.cpp)
-
 target_include_directories(example1_basic PUBLIC src)
+set_target_properties(example1_basic PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/example1_basic"
+)
+
+# ----------------
+# header-only glm
+# ----------------
+target_include_directories(example1_basic PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor/glm)
+
+# ----------------
+# library linkage
+# ----------------
 target_link_libraries(example1_basic PRIVATE
     wulkan
     Vulkan::Vulkan
     glfw
     GPUOpen::VulkanMemoryAllocator
     imgui
-)
-
-# ----------------
-# header-only glm
-# ----------------
-add_library(glm INTERFACE)
-target_include_directories(glm INTERFACE "${CMAKE_SOURCE_DIR}/vendor/glm")
-target_link_libraries(example1_basic PRIVATE glm)
-set_target_properties(example1_basic PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/example1_basic"
 )
 
 # ----------------

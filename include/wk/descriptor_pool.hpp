@@ -26,23 +26,32 @@ private:
 
 class DescriptorPoolCreateInfo {
 public:
+    DescriptorPoolCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
     DescriptorPoolCreateInfo& set_flags(VkDescriptorPoolCreateFlags flags) { _flags = flags; return *this; }
     DescriptorPoolCreateInfo& set_max_sets(uint32_t max_sets) { _max_sets = max_sets; return *this; }
-    DescriptorPoolCreateInfo& set_pool_sizes(const std::vector<VkDescriptorPoolSize>& pool_sizes) { _pool_sizes = pool_sizes; return *this; }
+    DescriptorPoolCreateInfo& set_pool_sizes(uint32_t count, const VkDescriptorPoolSize* pool_sizes) {
+        _pool_size_count = count;
+        _pool_sizes = pool_sizes;
+        return *this;
+    }
 
-    VkDescriptorPoolCreateInfo to_vk_descriptor_pool_create_info() {
+    VkDescriptorPoolCreateInfo to_vk_descriptor_pool_create_info() const {
         VkDescriptorPoolCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        ci.pNext = _p_next;
         ci.flags = _flags;
-        ci.poolSizeCount = static_cast<uint32_t>(_pool_sizes.size());
-        ci.pPoolSizes = _pool_sizes.data();
         ci.maxSets = _max_sets;
+        ci.poolSizeCount = _pool_size_count;
+        ci.pPoolSizes = _pool_sizes;
         return ci;
     }
+
 private:
+    const void* _p_next = nullptr;
+    VkDescriptorPoolCreateFlags _flags = 0;
     uint32_t _max_sets = 0;
-    std::vector<VkDescriptorPoolSize> _pool_sizes;
-    VkDescriptorPoolCreateFlags _flags;
+    uint32_t _pool_size_count = 0;
+    const VkDescriptorPoolSize* _pool_sizes = nullptr;
 };
 
 class DescriptorPool {
@@ -50,7 +59,7 @@ public:
     DescriptorPool(VkDevice device, const VkDescriptorPoolCreateInfo& create_info)
         : _device(device) {
         if (vkCreateDescriptorPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool");
+            std::cerr << "failed to create descriptor pool" << std::endl;
         }
     }
 
@@ -83,6 +92,7 @@ public:
     }
 
     const VkDescriptorPool& handle() const { return _handle; }
+    
 private:
     VkDescriptorPool _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

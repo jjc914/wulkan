@@ -30,35 +30,45 @@ private:
 
 class PipelineLayoutCreateInfo {
 public:
-    PipelineLayoutCreateInfo& set_push_constant_ranges(const std::vector<VkPushConstantRange>& ranges) {
-        _push_constant_ranges = ranges;
+    PipelineLayoutCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    PipelineLayoutCreateInfo& set_flags(VkPipelineLayoutCreateFlags flags) { _flags = flags; return *this; }
+    PipelineLayoutCreateInfo& set_set_layouts(uint32_t count, const VkDescriptorSetLayout* p_set_layouts) { 
+        _set_layout_count = count; 
+        _p_set_layouts = p_set_layouts; 
+        return *this;
+    }
+    PipelineLayoutCreateInfo& set_push_constant_ranges(uint32_t count, const VkPushConstantRange* p_push_constant_ranges) {
+        _push_constant_range_count = count;
+        _p_push_constant_ranges = p_push_constant_ranges;
         return *this;
     }
 
-    PipelineLayoutCreateInfo& set_set_layouts(const std::vector<VkDescriptorSetLayout>& set_layouts) {
-        _set_layouts = set_layouts;
-        return *this;
-    }
-
-    VkPipelineLayoutCreateInfo to_vk_pipeline_layout_create_info() {
+    VkPipelineLayoutCreateInfo to_vk_pipeline_layout_create_info() const {
         VkPipelineLayoutCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        ci.setLayoutCount = static_cast<uint32_t>(_set_layouts.size());
-        ci.pSetLayouts = _set_layouts.data();
-        ci.pushConstantRangeCount = static_cast<uint32_t>(_push_constant_ranges.size());
-        ci.pPushConstantRanges = _push_constant_ranges.data();
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.setLayoutCount = _set_layout_count;
+        ci.pSetLayouts = _p_set_layouts;
+        ci.pushConstantRangeCount = _push_constant_range_count;
+        ci.pPushConstantRanges = _p_push_constant_ranges;
         return ci;
     }
+
 private:
-    std::vector<VkPushConstantRange> _push_constant_ranges{};
-    std::vector<VkDescriptorSetLayout> _set_layouts{};
-};
+    const void* _p_next = nullptr;
+    VkPipelineLayoutCreateFlags _flags = 0;
+    uint32_t _set_layout_count = 0;
+    const VkDescriptorSetLayout* _p_set_layouts = nullptr;
+    uint32_t _push_constant_range_count = 0;
+    const VkPushConstantRange* _p_push_constant_ranges = nullptr;
+};    
 
 class PipelineLayout {
 public:
     PipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo& ci) : _device(device) {
         if (vkCreatePipelineLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create pipeline layout");
+            std::cerr << "failed to create pipeline layout" << std::endl;
         }
     }
 

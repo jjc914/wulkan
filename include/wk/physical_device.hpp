@@ -20,7 +20,7 @@ public:
         uint32_t device_count = 0;
         vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
         if (device_count == 0) {
-            throw std::runtime_error("failed to find suitable gpu with vulkan support");
+            std::cerr << "failed to find suitable gpu with vulkan support" << std::endl;
         }
         std::vector<VkPhysicalDevice> devices(device_count);
         vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
@@ -34,7 +34,7 @@ public:
         if (device_scores.rbegin()->first > 0) {
             _handle = device_scores.rbegin()->second;
         } else {
-            throw std::runtime_error("failed to find suitable gpu");
+            std::cerr << "failed to find suitable gpu" << std::endl;
         }
 
         vkGetPhysicalDeviceProperties(_handle, &_properties);
@@ -44,13 +44,13 @@ public:
 
     const VkPhysicalDevice& handle() const { return _handle; }
     const VkPhysicalDeviceFeatures& features() const { return _features; }
-    const QueueFamilyIndices& queue_family_indices() const { return _queue_family_indices; }
+    const DeviceQueueFamilyIndices& queue_family_indices() const { return _queue_family_indices; }
     const std::vector<const char*>& extensions() const { return _extensions; }
 private:
     VkPhysicalDevice _handle = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties _properties{};
     VkPhysicalDeviceFeatures _features{};
-    QueueFamilyIndices _queue_family_indices{};
+    DeviceQueueFamilyIndices _queue_family_indices{};
 
     std::vector<const char*> _extensions{};
 };

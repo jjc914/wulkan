@@ -12,38 +12,35 @@ namespace wk {
 
 class BufferCreateInfo {
 public:
+    BufferCreateInfo& set_flags(VkBufferCreateFlags flags) { _flags = flags; return *this; }
     BufferCreateInfo& set_size(VkDeviceSize size) { _size = size; return *this; }
     BufferCreateInfo& set_usage(VkBufferUsageFlags usage) { _usage = usage; return *this; }
     BufferCreateInfo& set_sharing_mode(VkSharingMode sharing_mode) { _sharing_mode = sharing_mode; return *this; }
+    BufferCreateInfo& set_queue_family_indices(uint32_t count, const uint32_t* indices) {
+        _queue_family_index_count = count;
+        _p_queue_family_indices = indices;
+        return *this;
+    }
 
-    VkBufferCreateInfo to_vk_buffer_create_info() {
+    VkBufferCreateInfo to_vk_buffer_create_info() const {
         VkBufferCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        ci.flags = _flags;
         ci.size = _size;
         ci.usage = _usage;
         ci.sharingMode = _sharing_mode;
+        ci.queueFamilyIndexCount = _queue_family_index_count;
+        ci.pQueueFamilyIndices = _p_queue_family_indices;
         return ci;
     }
 
 private:
-    VmaAllocator _allocator = VK_NULL_HANDLE;
+    VkBufferCreateFlags _flags = 0;
     VkDeviceSize _size = 0;
     VkBufferUsageFlags _usage = 0;
     VkSharingMode _sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
-};
-
-class AllocationCreateInfo {
-public:
-    AllocationCreateInfo& set_usage(VmaMemoryUsage usage) { _usage = usage; return *this; }
-
-    VmaAllocationCreateInfo to_vma_allocation_create_info() {
-        VmaAllocationCreateInfo ci{};
-        ci.usage = _usage;
-        return ci;
-    }
-
-private:
-    VmaMemoryUsage _usage = VMA_MEMORY_USAGE_AUTO;
+    uint32_t _queue_family_index_count = 0;
+    const uint32_t* _p_queue_family_indices = nullptr;
 };
 
 class Buffer {
@@ -52,7 +49,7 @@ public:
         : _allocator(allocator)
     {
         if (vmaCreateBuffer(_allocator, &ci, &aci, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create buffer");
+            std::cerr << "failed to create buffer" << std::endl;
         }
     }
 

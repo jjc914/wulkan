@@ -13,45 +13,55 @@ namespace wk {
 class DescriptorSetLayoutBinding {
 public:
     DescriptorSetLayoutBinding& set_binding(uint32_t binding) { _binding = binding; return *this; }
-    DescriptorSetLayoutBinding& set_descriptor_type(VkDescriptorType type) { _descriptor_type = type; return *this; }
-    DescriptorSetLayoutBinding& set_descriptor_count(uint32_t count) { _descriptor_count = count; return *this; }
-    DescriptorSetLayoutBinding& set_stage_flags(VkShaderStageFlags flags) { _stage_flags = flags; return *this; }
-    DescriptorSetLayoutBinding& set_immutable_samplers(const VkSampler* samplers) { _immutable_samplers = samplers; return *this; }
-
-    VkDescriptorSetLayoutBinding to_vk_descriptor_set_layout_binding() {
-        VkDescriptorSetLayoutBinding binding{};
-        binding.binding = _binding;
-        binding.descriptorType = _descriptor_type;
-        binding.descriptorCount = _descriptor_count;
-        binding.stageFlags = _stage_flags;
-        binding.pImmutableSamplers = _immutable_samplers;
-        return binding;
+    DescriptorSetLayoutBinding& set_descriptor_type(VkDescriptorType descriptor_type) { _descriptor_type = descriptor_type; return *this; }
+    DescriptorSetLayoutBinding& set_descriptor_count(uint32_t descriptor_count) { _descriptor_count = descriptor_count; return *this; }
+    DescriptorSetLayoutBinding& set_stage_flags(VkShaderStageFlags stage_flags) { _stage_flags = stage_flags; return *this; }
+    DescriptorSetLayoutBinding& set_immutable_samplers(const VkSampler* immutable_samplers) { 
+        _immutable_samplers = immutable_samplers; 
+        return *this; 
     }
+
+    VkDescriptorSetLayoutBinding to_vk_descriptor_set_layout_binding() const {
+        VkDescriptorSetLayoutBinding binding_info{};
+        binding_info.binding = _binding;
+        binding_info.descriptorType = _descriptor_type;
+        binding_info.descriptorCount = _descriptor_count;
+        binding_info.stageFlags = _stage_flags;
+        binding_info.pImmutableSamplers = _immutable_samplers;
+        return binding_info;
+    }
+
 private:
     uint32_t _binding = 0;
     VkDescriptorType _descriptor_type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uint32_t _descriptor_count = 1;
     VkShaderStageFlags _stage_flags = VK_SHADER_STAGE_VERTEX_BIT;
     const VkSampler* _immutable_samplers = nullptr;
-};
+};        
 
 class DescriptorSetLayoutCreateInfo {
 public:
-    DescriptorSetLayoutCreateInfo& set_bindings(const std::vector<VkDescriptorSetLayoutBinding>& bindings) {
-        _bindings = bindings;
-        return *this;
-    }
-
-    VkDescriptorSetLayoutCreateInfo to_vk_descriptor_set_layout_create_info() {
+    DescriptorSetLayoutCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    DescriptorSetLayoutCreateInfo& set_flags(VkDescriptorSetLayoutCreateFlags flags) { _flags = flags; return *this; }
+    DescriptorSetLayoutCreateInfo& set_bindings(uint32_t binding_count, const VkDescriptorSetLayoutBinding* bindings) { _binding_count = binding_count; _p_bindings = bindings; return *this; }
+    
+    VkDescriptorSetLayoutCreateInfo to_vk_descriptor_set_layout_create_info() const {
         VkDescriptorSetLayoutCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        ci.bindingCount = static_cast<uint32_t>(_bindings.size());
-        ci.pBindings = _bindings.data();
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.bindingCount = _binding_count;
+        ci.pBindings = _p_bindings;
         return ci;
     }
+
 private:
-    std::vector<VkDescriptorSetLayoutBinding> _bindings{};
+    const void* _p_next = nullptr;
+    VkDescriptorSetLayoutCreateFlags _flags = 0;
+    uint32_t _binding_count = 0;
+    const VkDescriptorSetLayoutBinding* _p_bindings = nullptr;
 };
+    
 
 class DescriptorSetLayout {
 public:
@@ -59,7 +69,7 @@ public:
         : _device(device)
     {
         if (vkCreateDescriptorSetLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor set layout");
+            std::cerr << "failed to create descriptor set layout" << std::endl;
         }
     }
 

@@ -11,9 +11,9 @@ namespace wk {
 
 class BufferCopy {
 public:
-    BufferCopy& set_src_offset(VkDeviceSize src_offset) { _src_offset = src_offset; return *this; }
-    BufferCopy& set_dst_offset(VkDeviceSize dst_offset) { _dst_offset = dst_offset; return *this; }
-    BufferCopy& set_size(VkDeviceSize size) { _size = size; return *this; }
+    BufferCopy& set_src_offset(VkDeviceSize src_offset) {_src_offset = src_offset; return *this; }
+    BufferCopy& set_dst_offset(VkDeviceSize dst_offset) {_dst_offset = dst_offset; return *this; }
+    BufferCopy& set_size(VkDeviceSize size) {_size = size; return *this; }
 
     VkBufferCopy to_vk_buffer_copy() {
         VkBufferCopy copy{};
@@ -31,67 +31,104 @@ private:
 class CommandBufferBeginInfo {
 public:
     CommandBufferBeginInfo& set_flags(VkCommandBufferUsageFlags flags) { _flags = flags; return *this; }
-    CommandBufferBeginInfo& set_inheritance_info(const VkCommandBufferInheritanceInfo* inheritance_info) { 
-        _inheritance_info = inheritance_info; 
-        return *this; 
+    CommandBufferBeginInfo& set_inheritance_info(const VkCommandBufferInheritanceInfo* info) {
+        _inheritance_info = info; return *this;
     }
+    CommandBufferBeginInfo& set_p_next(const void* pnext) { _p_next = pnext; return *this; }
 
-    VkCommandBufferBeginInfo to_vk_command_buffer_begin_info() {
+    VkCommandBufferBeginInfo to_vk_command_buffer_begin_info() const {
         VkCommandBufferBeginInfo bi{};
         bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        bi.pNext = _p_next;
         bi.flags = _flags;
         bi.pInheritanceInfo = _inheritance_info;
+        
         return bi;
     }
+
 private:
+    const void* _p_next = nullptr;
     VkCommandBufferUsageFlags _flags = 0;
     const VkCommandBufferInheritanceInfo* _inheritance_info = nullptr;
 };
 
+class ClearValue {
+public:
+    ClearValue& set_color(float r, float g, float b, float a = 1.0f) {
+        _value.color = {{ r, g, b, a }};
+        return *this;
+    }
+    ClearValue& set_depth_stencil(float depth, uint32_t stencil = 0) {
+        _value.depthStencil = { depth, stencil };
+        return *this;
+    }
+    
+    VkClearValue to_vk_clear_value() const {
+        return _value;
+    }
+
+private:
+    VkClearValue _value{};
+};
+
 class RenderPassBeginInfo {
 public:
-    RenderPassBeginInfo& set_render_pass(VkRenderPass render_pass) { _render_pass = render_pass; return *this;}
-    RenderPassBeginInfo& set_framebuffer(VkFramebuffer framebuffer) { _framebuffer = framebuffer; return *this;}
-    RenderPassBeginInfo& set_render_area(VkRect2D render_area) { _render_area = render_area; return *this;}
-    RenderPassBeginInfo& set_clear_values(const std::vector<VkClearValue>& clear_values) { _clear_values = clear_values; return *this;}
-
-    VkRenderPassBeginInfo to_vk_render_pass_begin_info() {
+    RenderPassBeginInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    RenderPassBeginInfo& set_render_pass(VkRenderPass render_pass) { _render_pass = render_pass; return *this; }
+    RenderPassBeginInfo& set_framebuffer(VkFramebuffer framebuffer) { _framebuffer = framebuffer; return *this; }
+    RenderPassBeginInfo& set_render_area(VkRect2D render_area) { _render_area = render_area; return *this; }
+    RenderPassBeginInfo& set_clear_values(uint32_t count, const VkClearValue* clear_values) {
+        _p_clear_values = clear_values; 
+        _clear_value_count = count; 
+        return *this; 
+    }
+    
+    VkRenderPassBeginInfo to_vk_render_pass_begin_info() const {
         VkRenderPassBeginInfo bi{};
         bi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        bi.pNext = _p_next;
         bi.renderPass = _render_pass;
         bi.framebuffer = _framebuffer;
         bi.renderArea = _render_area;
-        bi.clearValueCount = static_cast<uint32_t>(_clear_values.size());
-        bi.pClearValues = _clear_values.data();
+        bi.clearValueCount = _clear_value_count;
+        bi.pClearValues = _p_clear_values;
         return bi;
     }
 
 private:
+    const void* _p_next = nullptr;
     VkRenderPass _render_pass = VK_NULL_HANDLE;
     VkFramebuffer _framebuffer = VK_NULL_HANDLE;
     VkRect2D _render_area{};
-    std::vector<VkClearValue> _clear_values{};
+    const VkClearValue* _p_clear_values = nullptr;
+    uint32_t _clear_value_count = 0;
 };
+
 
 class CommandBufferAllocateInfo {
 public:
-    CommandBufferAllocateInfo& set_command_pool(VkCommandPool command_pool) { 
-        _command_pool = command_pool; 
-        return *this;
-    }
+    CommandBufferAllocateInfo& set_command_pool(VkCommandPool command_pool) { _command_pool = command_pool; return *this; }
+    CommandBufferAllocateInfo& set_level(VkCommandBufferLevel level) { _level = level; return *this; }
+    CommandBufferAllocateInfo& set_command_buffer_count(uint32_t count) { _command_buffer_count = count; return *this; }
+    CommandBufferAllocateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
 
-    VkCommandBufferAllocateInfo to_vk_command_buffer_allocate_info() {
+    VkCommandBufferAllocateInfo to_vk_command_buffer_allocate_info() const {
         VkCommandBufferAllocateInfo ai{};
         ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        ai.pNext = _p_next;
         ai.commandPool = _command_pool;
-        ai.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        ai.commandBufferCount = 1;
+        ai.level = _level;
+        ai.commandBufferCount = _command_buffer_count;
         return ai;
     }
 
 private:
+    const void* _p_next = nullptr;
     VkCommandPool _command_pool = VK_NULL_HANDLE;
+    VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    uint32_t _command_buffer_count = 1;
 };
+    
 
 class CommandBuffer {
 public:
@@ -99,7 +136,7 @@ public:
         : _device(device), _command_pool(ai.commandPool)
     {
         if (vkAllocateCommandBuffers(_device, &ai, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate command buffer");
+            std::cerr << "failed to allocate command buffer" << std::endl;
         }
     }
 
@@ -138,6 +175,7 @@ public:
     }
 
     const VkCommandBuffer& handle() const { return _handle; }
+    
 private:
     VkCommandBuffer _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;

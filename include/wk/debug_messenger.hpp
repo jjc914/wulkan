@@ -11,18 +11,17 @@ namespace wk {
 
 class DebugMessengerCreateInfo {
 public:
-    DebugMessengerCreateInfo& set_pnext(void* pnext) { _pnext = pnext; return *this; }
+    DebugMessengerCreateInfo& set_p_next(void* p_next) { _p_next = p_next; return *this; }
     DebugMessengerCreateInfo& set_flags(VkDebugUtilsMessengerCreateFlagsEXT flags) { _flags = flags; return *this; }
     DebugMessengerCreateInfo& set_message_severity(VkDebugUtilsMessageSeverityFlagsEXT severity) { _message_severity = severity; return *this; }
     DebugMessengerCreateInfo& set_message_type(VkDebugUtilsMessageTypeFlagsEXT type) { _message_type = type; return *this; }
     DebugMessengerCreateInfo& set_user_callback(PFN_vkDebugUtilsMessengerCallbackEXT callback) { _user_callback = callback; return *this; }
     DebugMessengerCreateInfo& set_user_data(void* user_data) { _user_data = user_data; return *this; }
-    DebugMessengerCreateInfo& set_instance(VkInstance instance) { _instance = instance; return *this; }
 
-    VkDebugUtilsMessengerCreateInfoEXT to_vk_debug_messenger_create_info() {
+    VkDebugUtilsMessengerCreateInfoEXT to_vk_debug_messenger_create_info() const {
         VkDebugUtilsMessengerCreateInfoEXT ci{};
         ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        ci.pNext = _pnext;
+        ci.pNext = _p_next;
         ci.flags = _flags;
         ci.messageSeverity = _message_severity;
         ci.messageType = _message_type;
@@ -31,13 +30,12 @@ public:
         return ci;
     }
 private:
-    void* _pnext = nullptr;
+    void* _p_next = nullptr;
     VkDebugUtilsMessengerCreateFlagsEXT _flags = 0;
     VkDebugUtilsMessageSeverityFlagsEXT _message_severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
     VkDebugUtilsMessageTypeFlagsEXT _message_type = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     PFN_vkDebugUtilsMessengerCallbackEXT _user_callback = nullptr;
     void* _user_data = nullptr;
-    VkInstance _instance = VK_NULL_HANDLE;
 };
 
 class DebugMessenger {
@@ -46,21 +44,21 @@ public:
         : _instance(instance) 
     {
         if (!IsValidationLayersSupported()) {
-            throw std::runtime_error("validation layers requested, but not available");
+            std::cerr << "validation layers requested, but not available" << std::endl;
         }
 
         _vkCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkCreateDebugUtilsMessengerEXT");
         if (_vkCreateDebugUtilsMessengerEXT == nullptr) {
-            throw std::runtime_error("failed to create vkCreateDebugUtilsMessengerEXT function");
+            std::cerr << "failed to create vkCreateDebugUtilsMessengerEXT function" << std::endl;
         }
 
         _vkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_instance, "vkDestroyDebugUtilsMessengerEXT");
         if (_vkDestroyDebugUtilsMessengerEXT == nullptr) {
-            throw std::runtime_error("failed to create vkDestroyDebugUtilsMessengerEXT function");
+            std::cerr << "failed to create vkDestroyDebugUtilsMessengerEXT function" << std::endl;
         }
 
         if (_vkCreateDebugUtilsMessengerEXT(_instance, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create debug messenger");
+            std::cerr << "failed to create debug messenger" << std::endl;
         }
     }
 
@@ -101,6 +99,7 @@ public:
         }
         return *this;
     }
+    
 private:
     VkDebugUtilsMessengerEXT _handle = VK_NULL_HANDLE;
     PFN_vkCreateDebugUtilsMessengerEXT _vkCreateDebugUtilsMessengerEXT = nullptr;

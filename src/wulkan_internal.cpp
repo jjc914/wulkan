@@ -33,16 +33,16 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DefaultDebugMessengerCallback(VkDebugUtilsMessage
                                                              VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                              void* pUserData) {
-    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        throw std::runtime_error(pCallbackData->pMessage);
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        std::cerr << pCallbackData->pMessage << std::endl;
     } else {
         std::clog << pCallbackData->pMessage << std::endl;
     }
     return VK_FALSE;
 }
 
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
-    QueueFamilyIndices indices;
+DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
+    DeviceQueueFamilyIndices indices;
 
     uint32_t queue_family_count = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
@@ -90,35 +90,35 @@ bool IsPhysicalDeviceExtensionSupported(VkPhysicalDevice device, const std::vect
     return true;
 }
 
-PhysicalDeviceSurfaceSupportDetails QueryPhysicalDeviceSurfaceSupport(VkPhysicalDevice device, VkSurfaceKHR surface) {
-    PhysicalDeviceSurfaceSupportDetails details;
+PhysicalDeviceSurfaceSupport GetPhysicalDeviceSurfaceSupport(VkPhysicalDevice device, VkSurfaceKHR surface) {
+    PhysicalDeviceSurfaceSupport support;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &support.capabilities);
 
     uint32_t format_count;
     vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
     if (format_count != 0) {
-        details.formats.resize(format_count);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, details.formats.data());
+        support.formats.resize(format_count);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, support.formats.data());
     }
 
     uint32_t present_mode_count;
     vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, nullptr);
     if (present_mode_count != 0) {
-        details.present_modes.resize(present_mode_count);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, details.present_modes.data());
+        support.present_modes.resize(present_mode_count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, support.present_modes.data());
     }
 
-    return details;
+    return support;
 }
 
 bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface) {
-    QueueFamilyIndices indices = FindQueueFamilies(device, surface);
+    DeviceQueueFamilyIndices indices = FindQueueFamilies(device, surface);
     bool is_extensions_supported = IsPhysicalDeviceExtensionSupported(device, required_extensions);
 
     bool is_swapchain_adequate = false;
     if (is_extensions_supported) {
-        PhysicalDeviceSurfaceSupportDetails swapchain_support = QueryPhysicalDeviceSurfaceSupport(device, surface);
+        PhysicalDeviceSurfaceSupport swapchain_support = GetPhysicalDeviceSurfaceSupport(device, surface);
         is_swapchain_adequate = !swapchain_support.formats.empty() && !swapchain_support.present_modes.empty();
     }
 
@@ -162,18 +162,22 @@ VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<V
             return format;
         }
     }
-    throw std::runtime_error("failed to find supported depth format");
+    std::cerr << "failed to find supported depth format" << std::endl;
 }
 
 VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKHR>& available_present_modes) {
+#if defined(__APPLE__)
+    // On macOS (MoltenVK), only FIFO is guaranteed to work.
+    return VK_PRESENT_MODE_FIFO_KHR;
+#else
     for (const auto& available_present_mode : available_present_modes) {
         if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
             return available_present_mode;
         }
     }
-
     return VK_PRESENT_MODE_FIFO_KHR;
-}
+#endif
+}    
 
 VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceCapabilitiesKHR& capabilities) {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
@@ -188,20 +192,9 @@ VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceC
 }
 
 std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
-    std::filesystem::path bin_dir;
-#ifdef __APPLE__
-    char buf[PATH_MAX];
-    uint32_t bufsize = PATH_MAX;
-    if (_NSGetExecutablePath(buf, &bufsize) != 0) {
-        throw std::runtime_error("failed to get executable path");
-    }
-    bin_dir = buf;
-    bin_dir.remove_filename();
-#endif
-
-    std::ifstream file(bin_dir / file_name, std::ios::ate | std::ios::binary);
+    std::ifstream file(file_name, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
-        throw std::runtime_error("failed to open shader");
+        std::cerr << "failed to open shader" << std::endl;
     }
 
     size_t file_size = static_cast<size_t>(file.tellg());
@@ -211,6 +204,26 @@ std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
     file.close();
 
     return buffer;
+}
+
+VkImageAspectFlags GetAspectFlags(VkFormat format) {
+    switch (format) {
+        case VK_FORMAT_D16_UNORM:
+        case VK_FORMAT_X8_D24_UNORM_PACK32:
+        case VK_FORMAT_D32_SFLOAT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        case VK_FORMAT_S8_UINT:
+            return VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        case VK_FORMAT_D16_UNORM_S8_UINT:
+        case VK_FORMAT_D24_UNORM_S8_UINT:
+        case VK_FORMAT_D32_SFLOAT_S8_UINT:
+            return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+        default:
+            return VK_IMAGE_ASPECT_COLOR_BIT;
+    }
 }
 
 }

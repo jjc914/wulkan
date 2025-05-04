@@ -14,122 +14,175 @@ namespace wk {
 
 class GraphicsQueueSubmitInfo {
 public:
-    GraphicsQueueSubmitInfo& set_wait_semaphores(std::vector<std::pair<VkSemaphore, VkPipelineStageFlags>> wait_semaphores) { _wait_semaphores = wait_semaphores; return *this; }
-    GraphicsQueueSubmitInfo& set_command_buffers(std::vector<VkCommandBuffer> command_buffers) { _command_buffers = command_buffers; return *this; }
-    GraphicsQueueSubmitInfo& set_signal_semaphores(std::vector<VkSemaphore> signal_semaphores) { _signal_semaphores = signal_semaphores; return *this; }
-
-    VkSubmitInfo to_vk_submit_info() {
-        _wait_semaphores_vec.clear();
-        for (int i = 0; i < _wait_semaphores.size(); ++i) {
-            _wait_semaphores_vec.push_back(_wait_semaphores[i].first);
-        }
-
-        _wait_stage_flags.clear();
-        for (int i = 0; i < _wait_semaphores.size(); ++i) {
-            _wait_stage_flags.push_back(_wait_semaphores[i].second);
-        }
-
+    GraphicsQueueSubmitInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    GraphicsQueueSubmitInfo& set_wait_semaphores(uint32_t count, const VkSemaphore* semaphores) {
+        _wait_semaphore_count = count;
+        _p_wait_semaphores = semaphores;
+        return *this;
+    }
+    GraphicsQueueSubmitInfo& set_wait_dst_stage_masks(uint32_t count, const VkPipelineStageFlags* stage_masks) {
+        _wait_dst_stage_mask_count = count;
+        _p_wait_dst_stage_masks = stage_masks;
+        return *this;
+    }
+    GraphicsQueueSubmitInfo& set_command_buffers(uint32_t count, const VkCommandBuffer* command_buffers) {
+        _command_buffer_count = count;
+        _p_command_buffers = command_buffers;
+        return *this;
+    }
+    GraphicsQueueSubmitInfo& set_signal_semaphores(uint32_t count, const VkSemaphore* semaphores) {
+        _signal_semaphore_count = count;
+        _p_signal_semaphores = semaphores;
+        return *this;
+    }
+    
+    VkSubmitInfo to_vk_submit_info() const {
         VkSubmitInfo si{};
         si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        si.waitSemaphoreCount = static_cast<uint32_t>(_wait_semaphores.size());
-        si.pWaitSemaphores = _wait_semaphores_vec.data();
-        si.pWaitDstStageMask = _wait_stage_flags.data();
-        si.commandBufferCount = static_cast<uint32_t>(_command_buffers.size());
-        si.pCommandBuffers = _command_buffers.data();
-        si.signalSemaphoreCount = static_cast<uint32_t>(_signal_semaphores.size());
-        si.pSignalSemaphores = _signal_semaphores.data();
+        si.pNext = _p_next;
+        si.waitSemaphoreCount = _wait_semaphore_count;
+        si.pWaitSemaphores = _p_wait_semaphores;
+        si.pWaitDstStageMask = _p_wait_dst_stage_masks;
+        si.commandBufferCount = _command_buffer_count;
+        si.pCommandBuffers = _p_command_buffers;
+        si.signalSemaphoreCount = _signal_semaphore_count;
+        si.pSignalSemaphores = _p_signal_semaphores;
         return si;
     }
-private:
-    std::vector<std::pair<VkSemaphore, VkPipelineStageFlags>> _wait_semaphores{};
-    std::vector<VkCommandBuffer> _command_buffers{};
-    std::vector<VkSemaphore> _signal_semaphores{};
 
-    std::vector<VkSemaphore> _wait_semaphores_vec{};
-    std::vector<VkPipelineStageFlags> _wait_stage_flags{};
+private:
+    const void* _p_next = nullptr;
+    uint32_t _wait_semaphore_count = 0;
+    const VkSemaphore* _p_wait_semaphores = nullptr;
+    uint32_t _wait_dst_stage_mask_count = 0;
+    const VkPipelineStageFlags* _p_wait_dst_stage_masks = nullptr;
+    uint32_t _command_buffer_count = 0;
+    const VkCommandBuffer* _p_command_buffers = nullptr;
+    uint32_t _signal_semaphore_count = 0;
+    const VkSemaphore* _p_signal_semaphores = nullptr;
 };
 
 class PresentInfo {
 public:
-    PresentInfo& set_wait_semaphores(const std::vector<VkSemaphore>& semaphores) { _wait_semaphores = semaphores; return *this;}
-    PresentInfo& set_swapchains(const std::vector<VkSwapchainKHR>& swapchains) { _swapchains = swapchains; return *this;}
-    PresentInfo& set_image_indices(const std::vector<uint32_t>& indices) { _image_indices = indices; return *this;}
+    PresentInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    PresentInfo& set_wait_semaphores(uint32_t count, const VkSemaphore* semaphores) {
+        _wait_semaphore_count = count;
+        _p_wait_semaphores = semaphores;
+        return *this;
+    }
+    PresentInfo& set_swapchains(uint32_t count, const VkSwapchainKHR* swapchains) {
+        _swapchain_count = count;
+        _p_swapchains = swapchains;
+        return *this;
+    }
+    PresentInfo& set_image_indices(const uint32_t* indices) {
+        _p_image_indices = indices;
+        return *this;
+    }
 
-    VkPresentInfoKHR to_vk_present_info() {
+    VkPresentInfoKHR to_vk_present_info() const {
         VkPresentInfoKHR pi{};
         pi.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        pi.waitSemaphoreCount = static_cast<uint32_t>(_wait_semaphores.size());
-        pi.pWaitSemaphores = _wait_semaphores.data();
-        pi.swapchainCount = static_cast<uint32_t>(_swapchains.size());
-        pi.pSwapchains = _swapchains.data();
-        pi.pImageIndices = _image_indices.data();
+        pi.pNext = _p_next;
+        pi.waitSemaphoreCount = _wait_semaphore_count;
+        pi.pWaitSemaphores = _p_wait_semaphores;
+        pi.swapchainCount = _swapchain_count;
+        pi.pSwapchains = _p_swapchains;
+        pi.pImageIndices = _p_image_indices;
         pi.pResults = nullptr;
         return pi;
     }
+
 private:
-    std::vector<VkSemaphore> _wait_semaphores;
-    std::vector<VkSwapchainKHR> _swapchains;
-    std::vector<uint32_t> _image_indices;
+    const void* _p_next = nullptr;
+    uint32_t _wait_semaphore_count = 0;
+    const VkSemaphore* _p_wait_semaphores = nullptr;
+    uint32_t _swapchain_count = 0;
+    const VkSwapchainKHR* _p_swapchains = nullptr;
+    const uint32_t* _p_image_indices = nullptr;
+};
+
+class DeviceQueueCreateInfo {
+public:
+    DeviceQueueCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    DeviceQueueCreateInfo& set_flags(VkDeviceQueueCreateFlags flags) { _flags = flags; return *this; }
+    DeviceQueueCreateInfo& set_queue_family_index(uint32_t index) { _queue_family_index = index; return *this; }
+    DeviceQueueCreateInfo& set_queue_count(uint32_t count) { _queue_count = count; return *this; }
+    DeviceQueueCreateInfo& set_p_queue_priorities(const float* priorities) { _p_queue_priorities = priorities; return *this; }
+
+    VkDeviceQueueCreateInfo to_vk_device_queue_create_info() const {
+        VkDeviceQueueCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.queueFamilyIndex = _queue_family_index;
+        ci.queueCount = _queue_count;
+        ci.pQueuePriorities = _p_queue_priorities;
+        return ci;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    VkDeviceQueueCreateFlags _flags = 0;
+    uint32_t _queue_family_index = 0;
+    uint32_t _queue_count = 1;
+    const float* _p_queue_priorities = nullptr;
 };
 
 class DeviceCreateInfo {
 public:
-    DeviceCreateInfo& set_extensions(const std::vector<const char*>& extensions) { _extensions = extensions; return *this; }
-    DeviceCreateInfo& set_layers(const std::vector<const char*>& layers) { _layers = layers; return *this; }
-    DeviceCreateInfo& set_queue_family_indices(QueueFamilyIndices indices) { _indices = indices; return *this; }
-    DeviceCreateInfo& set_features(VkPhysicalDeviceFeatures features) { _features = features; return *this; }
+    DeviceCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    DeviceCreateInfo& set_flags(VkDeviceCreateFlags flags) { _flags = flags; return *this; }
+    DeviceCreateInfo& set_p_enabled_features(const VkPhysicalDeviceFeatures* p_enabled_features) { _p_enabled_features = p_enabled_features; return *this; }
+    DeviceCreateInfo& set_enabled_extensions(uint32_t count, const char* const* pp_names) {
+        _enabled_extension_count = count;
+        _pp_enabled_extension_names = pp_names; 
+        return *this; 
+    }
+    DeviceCreateInfo& set_queue_create_infos(uint32_t count, const VkDeviceQueueCreateInfo* infos) {
+        _queue_create_info_count = count;
+        _p_queue_create_infos = infos;
+        return *this;
+    }    
 
     VkDeviceCreateInfo to_vk_device_create_info() {
-        std::set<uint32_t> unique_queue_families = {
-            _indices.graphics_family.value(),
-            _indices.present_family.value()
-        };
-
-        _queue_create_infos.clear();
-        _queue_priorities.clear();
-        for (uint32_t family : unique_queue_families) {
-            _queue_priorities.push_back(1.0f);
-            VkDeviceQueueCreateInfo qci{};
-            qci.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            qci.queueFamilyIndex = family;
-            qci.queueCount = 1;
-            qci.pQueuePriorities = &_queue_priorities.back();
-            _queue_create_infos.push_back(qci);
-        }
-
         VkDeviceCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        ci.queueCreateInfoCount = static_cast<uint32_t>(_queue_create_infos.size());
-        ci.pQueueCreateInfos = _queue_create_infos.data();
-        ci.pEnabledFeatures = &_features;
-        ci.enabledExtensionCount = static_cast<uint32_t>(_extensions.size());
-        ci.ppEnabledExtensionNames = _extensions.data();
-#ifdef VLK_ENABLE_VALIDATION_LAYERS
-        ci.enabledLayerCount = static_cast<uint32_t>(_layers.size());
-        ci.ppEnabledLayerNames = _layers.data();
-#else
-        ci.enabledLayerCount = 0;
-#endif
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.queueCreateInfoCount = _queue_create_info_count;
+        ci.pQueueCreateInfos = _p_queue_create_infos;
+        ci.enabledExtensionCount = _enabled_extension_count;
+        ci.ppEnabledExtensionNames = _pp_enabled_extension_names;
+        ci.pEnabledFeatures = _p_enabled_features;
         return ci;
     }
+
 private:
-    std::vector<const char*> _extensions{};
-    std::vector<const char*> _layers{};
-    QueueFamilyIndices _indices{};
-    VkPhysicalDeviceFeatures _features{};
-    std::vector<VkDeviceQueueCreateInfo> _queue_create_infos{};
-    std::vector<float> _queue_priorities;
+    const void* _p_next = nullptr;
+    VkDeviceCreateFlags _flags = 0;
+    const VkPhysicalDeviceFeatures* _p_enabled_features = nullptr;
+    uint32_t _enabled_extension_count = 0;
+    const char* const* _pp_enabled_extension_names = nullptr;
+    uint32_t _queue_create_info_count = 0;
+    const VkDeviceQueueCreateInfo* _p_queue_create_infos = nullptr;
 };
+    
 
 class Device {
 public:
-    Device(VkPhysicalDevice physical_device, QueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
+    Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
         if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create logical device");
+            std::cerr << "failed to create logical device" << std::endl;
         }
         
-        vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &_graphics_queue);
-        vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &_present_queue);
+        if (indices.is_unique()) {
+            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &_graphics_queue);
+            vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &_present_queue);
+        } else {
+            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &_graphics_queue);
+            _present_queue = _graphics_queue;
+        }
     }
 
     ~Device() {

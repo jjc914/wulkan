@@ -2,6 +2,7 @@
 #define wulkan_wk_SWAPCHAIN_HPP
 
 #include "wulkan_internal.hpp"
+#include "image_view.hpp"
 
 #include <cstdint>
 #include <stdexcept>
@@ -13,64 +14,67 @@ namespace wk {
 
 class SwapchainCreateInfo {
 public:
+    SwapchainCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    SwapchainCreateInfo& set_flags(VkSwapchainCreateFlagsKHR flags) { _flags = flags; return *this; }
     SwapchainCreateInfo& set_surface(VkSurfaceKHR surface) { _surface = surface; return *this; }
-    SwapchainCreateInfo& set_physical_device(VkPhysicalDevice physical_device) { _physical_device = physical_device; return *this; }
-    SwapchainCreateInfo& set_width(uint32_t width) { _width = width; return *this; }
-    SwapchainCreateInfo& set_height(uint32_t height) { _height = height; return *this; }
-    SwapchainCreateInfo& set_queue_family_indices(QueueFamilyIndices indices) { _queue_family_indices = indices; return *this; }
-    SwapchainCreateInfo& set_old_swapchain(VkSwapchainKHR old_swapchain) { _old_swapchain = old_swapchain; return *this; }
+    SwapchainCreateInfo& set_min_image_count(uint32_t count) { _min_image_count = count; return *this; }
+    SwapchainCreateInfo& set_image_format(VkFormat format) { _image_format = format; return *this; }
+    SwapchainCreateInfo& set_image_color_space(VkColorSpaceKHR color_space) { _image_color_space = color_space; return *this; }
+    SwapchainCreateInfo& set_image_extent(VkExtent2D extent) { _image_extent = extent; return *this; }
+    SwapchainCreateInfo& set_image_array_layers(uint32_t layers) { _image_array_layers = layers; return *this; }
+    SwapchainCreateInfo& set_image_usage(VkImageUsageFlags usage) { _image_usage = usage; return *this; }
+    SwapchainCreateInfo& set_image_sharing_mode(VkSharingMode mode) { _image_sharing_mode = mode; return *this; }
+    SwapchainCreateInfo& set_queue_family_indices(uint32_t count, const uint32_t* indices) { 
+        _queue_family_index_count = count; 
+        _p_queue_family_indices = indices; 
+        return *this; 
+    }
+    SwapchainCreateInfo& set_pre_transform(VkSurfaceTransformFlagBitsKHR transform) { _pre_transform = transform; return *this; }
+    SwapchainCreateInfo& set_composite_alpha(VkCompositeAlphaFlagBitsKHR alpha) { _composite_alpha = alpha; return *this; }
+    SwapchainCreateInfo& set_present_mode(VkPresentModeKHR mode) { _present_mode = mode; return *this; }
+    SwapchainCreateInfo& set_clipped(VkBool32 clipped) { _clipped = clipped; return *this; }
+    SwapchainCreateInfo& set_old_swapchain(VkSwapchainKHR swapchain) { _old_swapchain = swapchain; return *this; }
 
-    VkSwapchainCreateInfoKHR to_vk_swapchain_create_info() {
-        PhysicalDeviceSurfaceSupportDetails details = QueryPhysicalDeviceSurfaceSupport(_physical_device, _surface);
-
-        VkSurfaceFormatKHR format = ChooseSurfaceFormat(details.formats);
-        VkPresentModeKHR present_mode = ChooseSurfacePresentationMode(details.present_modes);
-        VkExtent2D extent = ChooseSurfaceExtent(_width, _height, details.capabilities);
-
-        uint32_t image_count = details.capabilities.minImageCount + 1;
-        if (details.capabilities.maxImageCount > 0) {
-            image_count = std::clamp(image_count, details.capabilities.minImageCount, details.capabilities.maxImageCount);
-        }
-
+    VkSwapchainCreateInfoKHR to_vk_swapchain_create_info() const {
         VkSwapchainCreateInfoKHR ci{};
         ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
         ci.surface = _surface;
-        ci.minImageCount = image_count;
-        ci.imageFormat = format.format;
-        ci.imageColorSpace = format.colorSpace;
-        ci.imageExtent = extent;
-        ci.imageArrayLayers = 1;
-        ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-        if (_queue_family_indices.graphics_family != _queue_family_indices.present_family) {
-            ci.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-            _queue_family_indices_vec = { 
-                _queue_family_indices.graphics_family.value(), 
-                _queue_family_indices.present_family.value() 
-            };
-            ci.queueFamilyIndexCount = static_cast<uint32_t>(_queue_family_indices_vec.size());
-            ci.pQueueFamilyIndices = _queue_family_indices_vec.data();
-        } else {
-            ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            ci.queueFamilyIndexCount = 0;
-            ci.pQueueFamilyIndices = nullptr;
-        }
-
-        ci.preTransform = details.capabilities.currentTransform;
-        ci.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        ci.presentMode = present_mode;
-        ci.clipped = VK_TRUE;
+        ci.minImageCount = _min_image_count;
+        ci.imageFormat = _image_format;
+        ci.imageColorSpace = _image_color_space;
+        ci.imageExtent = _image_extent;
+        ci.imageArrayLayers = _image_array_layers;
+        ci.imageUsage = _image_usage;
+        ci.imageSharingMode = _image_sharing_mode;
+        ci.queueFamilyIndexCount = _queue_family_index_count;
+        ci.pQueueFamilyIndices = _p_queue_family_indices;
+        ci.preTransform = _pre_transform;
+        ci.compositeAlpha = _composite_alpha;
+        ci.presentMode = _present_mode;
+        ci.clipped = _clipped;
         ci.oldSwapchain = _old_swapchain;
-
         return ci;
     }
+
 private:
+    const void* _p_next = nullptr;
+    VkSwapchainCreateFlagsKHR _flags = 0;
     VkSurfaceKHR _surface = VK_NULL_HANDLE;
-    VkPhysicalDevice _physical_device = VK_NULL_HANDLE;
-    uint32_t _width = 0;
-    uint32_t _height = 0;
-    QueueFamilyIndices _queue_family_indices{};
-    std::vector<uint32_t> _queue_family_indices_vec{};
+    uint32_t _min_image_count = 0;
+    VkFormat _image_format = VK_FORMAT_UNDEFINED;
+    VkColorSpaceKHR _image_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    VkExtent2D _image_extent = {0, 0};
+    uint32_t _image_array_layers = 1;
+    VkImageUsageFlags _image_usage = 0;
+    VkSharingMode _image_sharing_mode = VK_SHARING_MODE_EXCLUSIVE;
+    uint32_t _queue_family_index_count = 0;
+    const uint32_t* _p_queue_family_indices = nullptr;
+    VkSurfaceTransformFlagBitsKHR _pre_transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    VkCompositeAlphaFlagBitsKHR _composite_alpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    VkPresentModeKHR _present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    VkBool32 _clipped = VK_TRUE;
     VkSwapchainKHR _old_swapchain = VK_NULL_HANDLE;
 };
 
@@ -80,7 +84,7 @@ public:
         : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent)
     {
         if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create swapchain");
+            std::cerr << "failed to create swapchain" << std::endl;
         }
 
         uint32_t image_count = 0;
@@ -90,25 +94,15 @@ public:
 
         _image_views.resize(_images.size());
         for (size_t i = 0; i < _images.size(); ++i) {
-            VkImageViewCreateInfo view_info{};
-            view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            view_info.image = _images[i];
-            view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            view_info.format = _image_format;
-            view_info.components = {
-                VK_COMPONENT_SWIZZLE_IDENTITY,
-                VK_COMPONENT_SWIZZLE_IDENTITY,
-                VK_COMPONENT_SWIZZLE_IDENTITY,
-                VK_COMPONENT_SWIZZLE_IDENTITY
-            };
-            view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            view_info.subresourceRange.baseMipLevel = 0;
-            view_info.subresourceRange.levelCount = 1;
-            view_info.subresourceRange.baseArrayLayer = 0;
-            view_info.subresourceRange.layerCount = 1;
-
+            VkImageViewCreateInfo view_info = ImageViewCreateInfo{}
+                .set_image(_images[i])
+                .set_view_type(VK_IMAGE_VIEW_TYPE_2D)
+                .set_format(_image_format)
+                .set_components(ComponentMapping::identity().to_vk_component_mapping())
+                .set_subresource_range(ImageSubresourceRange::color().to_vk_image_subresource_range())
+                .to_vk_image_view_create_info();
             if (vkCreateImageView(_device, &view_info, nullptr, &_image_views[i]) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create image views");
+                std::cerr << "failed to create image views" << std::endl;
             }
         }
     }
@@ -151,7 +145,6 @@ public:
 
     const VkSwapchainKHR& handle() const { return _handle; }
     const VkFormat& image_format() const { return _image_format; }
-    const VkFormat& depth_format() const { return _depth_format; }
     const std::vector<VkImageView>& image_views() const { return _image_views; }
     const VkExtent2D& extent() const { return _extent; }
 private:
@@ -170,7 +163,6 @@ private:
     VkDevice _device = VK_NULL_HANDLE;
     std::vector<VkImage> _images;
     VkFormat _image_format;
-    VkFormat _depth_format;
     VkExtent2D _extent;
     std::vector<VkImageView> _image_views;
 };

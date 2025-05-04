@@ -11,12 +11,22 @@ namespace wk {
 
 class SemaphoreCreateInfo {
 public:
-    VkSemaphoreCreateInfo to_vk_semaphore_create_info() {
+    SemaphoreCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    SemaphoreCreateInfo& set_flags(VkSemaphoreCreateFlags flags) { _flags = flags; return *this; }
+
+    VkSemaphoreCreateInfo to_vk_semaphore_create_info() const {
         VkSemaphoreCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
         return ci;
     }
+
+private:
+    const void* _p_next = nullptr;
+    VkSemaphoreCreateFlags _flags = 0;
 };
+        
 
 class Semaphore {
 public:
@@ -24,7 +34,7 @@ public:
         : _device(device)
     {
         if (vkCreateSemaphore(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create semaphore");
+            std::cerr << "failed to create semaphore" << std::endl;
         }
     }
 

@@ -16,16 +16,22 @@
 
 namespace wk {
 
-struct QueueFamilyIndices {
+struct DeviceQueueFamilyIndices {
     std::optional<uint32_t> graphics_family;
     std::optional<uint32_t> present_family;
 
     bool is_complete() const {
         return graphics_family.has_value() && present_family.has_value();
     }
+    bool is_unique() const {
+        return graphics_family.value() != present_family.value();
+    }
+    std::vector<uint32_t> to_vec() const {
+        return { graphics_family.value(), present_family.value() };
+    }
 };
 
-struct PhysicalDeviceSurfaceSupportDetails {
+struct PhysicalDeviceSurfaceSupport {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> present_modes;
@@ -37,15 +43,17 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DefaultDebugMessengerCallback(VkDebugUtilsMessage
                                                              VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                              void* pUserData);
-QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 bool IsPhysicalDeviceExtensionSupported(VkPhysicalDevice device, const std::vector<const char*>& required_extensions);
-PhysicalDeviceSurfaceSupportDetails QueryPhysicalDeviceSurfaceSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+PhysicalDeviceSurfaceSupport GetPhysicalDeviceSurfaceSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface);
 int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface);
 VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
+VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<VkFormat>& requested_formats);
 VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKHR>& available_present_modes);
 VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceCapabilitiesKHR& capabilities);
 std::vector<uint8_t> ReadSpirvShader(const char* file_name);
+VkImageAspectFlags GetAspectFlags(VkFormat format);
 
 }
 
