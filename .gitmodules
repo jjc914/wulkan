@@ -1,15 +1,15 @@
 [submodule "vendor/VulkanMemoryAllocator"]
 	path = vendor/VulkanMemoryAllocator
-	url = ../VulkanMemoryAllocator.git
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
 [submodule "examples/1_basic/vendor/glm"]
 	path = examples/1_basic/vendor/glm
-	url = ../glm.git
+	url = https://github.com/g-truc/glm.git
 [submodule "examples/2_rt/vendor/glm"]
 	path = examples/2_rt/vendor/glm
-	url = ../glm.git
+	url = https://github.com/g-truc/glm.git
 [submodule "examples/1_basic/vendor/imgui"]
 	path = examples/1_basic/vendor/imgui
-	url = ../imgui.git
+	url = https://github.com/ocornut/imgui.git
 [submodule "vendor/glfw"]
 	path = vendor/glfw
-	url = ../glfw.git
+	url = https://github.com/glfw/glfw.git
