@@ -10,3 +10,6 @@
 [submodule "examples/1_basic/vendor/imgui"]
 	path = examples/1_basic/vendor/imgui
 	url = git@github.com:ocornut/imgui.git
+[submodule "vendor/glfw"]
+	path = vendor/glfw
+	url = https://github.com/glfw/glfw.git
