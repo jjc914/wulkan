@@ -53,8 +53,8 @@ public:
         _pp_layers = layers;
         return *this;
     }
-    InstanceCreateInfo& set_application_info(const VkApplicationInfo* app_info) { 
-        _p_application_info = app_info;
+    InstanceCreateInfo& set_p_application_info(const VkApplicationInfo* p_app_info) { 
+        _p_application_info = p_app_info;
         return *this;
     }
 
