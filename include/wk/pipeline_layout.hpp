@@ -43,7 +43,7 @@ public:
         return *this;
     }
 
-    VkPipelineLayoutCreateInfo to_vk_pipeline_layout_create_info() const {
+    VkPipelineLayoutCreateInfo to_vk() const {
         VkPipelineLayoutCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         ci.pNext = _p_next;
@@ -66,7 +66,10 @@ private:
 
 class PipelineLayout {
 public:
-    PipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo& ci) : _device(device) {
+    PipelineLayout() noexcept = default;
+    PipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo& ci)
+        : _device(device)
+    {
         if (vkCreatePipelineLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create pipeline layout" << std::endl;
         }

@@ -1,7 +1,7 @@
 #ifndef wulkan_wk_INSTANCE_HPP
 #define wulkan_wk_INSTANCE_HPP
 
-#include"wulkan_internal.hpp"
+#include "wulkan_internal.hpp"
 #include "debug_messenger.hpp"
 
 #include <cstdint>
@@ -19,7 +19,7 @@ public:
     ApplicationInfo& set_engine_version(uint32_t version) { _engine_version = version; return *this; }
     ApplicationInfo& set_api_version(uint32_t version) { _api_version = version; return *this; }
 
-    VkApplicationInfo to_vk_application_info() {
+    VkApplicationInfo to_vk() {
         VkApplicationInfo vkai{};
         vkai.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         vkai.pNext = _p_next;
@@ -58,7 +58,7 @@ public:
         return *this;
     }
 
-    VkInstanceCreateInfo to_vk_instance_create_info() const {
+    VkInstanceCreateInfo to_vk() const {
         VkInstanceCreateInfo vkci{};
         vkci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         vkci.pNext = _p_next;
@@ -84,6 +84,7 @@ private:
 
 class Instance {
 public:
+    Instance() noexcept = default;
     Instance(const VkInstanceCreateInfo& ci) {
         if (vkCreateInstance(&ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create vulkan instance" << std::endl;

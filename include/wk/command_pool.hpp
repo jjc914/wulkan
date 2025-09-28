@@ -15,7 +15,7 @@ public:
     CommandPoolCreateInfo& set_queue_family_index(uint32_t queue_family_index) { _queue_family_index = queue_family_index; return *this; }
     CommandPoolCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
 
-    VkCommandPoolCreateInfo to_vk_command_pool_create_info() const {
+    VkCommandPoolCreateInfo to_vk() const {
         VkCommandPoolCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         ci.pNext = _p_next;
@@ -33,6 +33,7 @@ private:
 
 class CommandPool {
 public:
+    CommandPool() noexcept = default;
     CommandPool(VkDevice device, const VkCommandPoolCreateInfo& create_info)
         : _device(device)
     {

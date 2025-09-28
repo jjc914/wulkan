@@ -1,5 +1,7 @@
 #include "../include/wk/wulkan_internal.hpp"
 
+#include <functional>
+
 namespace wk {
 
 std::vector<const char*> GetDefaultRequiredDeviceExtensions() {
@@ -125,11 +127,12 @@ bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const c
     return indices.is_complete() && is_extensions_supported && is_swapchain_adequate;
 }
 
-int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface) {
-    VkPhysicalDeviceProperties device_properties;
+int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface, VkPhysicalDeviceFeatures2* feature_chain, PhysicalDeviceFeatureScorer scorer) {
+    VkPhysicalDeviceProperties device_properties{};
     vkGetPhysicalDeviceProperties(device, &device_properties);
 
     int32_t score = 0;
+
     if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
         score += 1000;
     } else if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
@@ -137,9 +140,73 @@ int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char
     } else {
         return 0;
     }
+
     if (!IsPhysicalDeviceSuitable(device, required_extensions, surface)) {
         return 0;
     }
+
+    vkGetPhysicalDeviceFeatures2(device, feature_chain);
+
+    score += (*scorer)(device, feature_chain);
+
+    return score;
+}
+
+int32_t DefaultPhysicalDeviceFeatureScorer(VkPhysicalDevice device, const VkPhysicalDeviceFeatures2* feats2) {
+    int32_t score = 0;
+
+    VkPhysicalDeviceProperties props{};
+    vkGetPhysicalDeviceProperties(device, &props);
+
+    switch (props.deviceType) {
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:   score += 1000; break;
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: score +=  500; break;
+        default: break;
+    }
+
+    VkPhysicalDeviceMemoryProperties mem{};
+    vkGetPhysicalDeviceMemoryProperties(device, &mem);
+    VkDeviceSize vram = 0;
+    for (uint32_t i = 0; i < mem.memoryHeapCount; ++i)
+        if (mem.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+            vram += mem.memoryHeaps[i].size;
+
+    score += static_cast<int32_t>(vram / (256ull * 1024ull * 1024ull));
+
+    if (!feats2) return score;
+
+    const VkPhysicalDeviceFeatures& f = feats2->features;
+    if (f.geometryShader)      score += 100;
+    if (f.tessellationShader)  score += 100;
+    if (f.sampleRateShading)   score += 100;
+
+    for (const VkBaseOutStructure* p = reinterpret_cast<const VkBaseOutStructure*>(feats2->pNext);
+         p;
+         p = p->pNext) {
+        switch (p->sType) {
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR: {
+                auto* rtp = reinterpret_cast<const VkPhysicalDeviceRayTracingPipelineFeaturesKHR*>(p);
+                if (rtp->rayTracingPipeline) score += 400;
+                break;
+            }
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT: {
+                auto* ms = reinterpret_cast<const VkPhysicalDeviceMeshShaderFeaturesEXT*>(p);
+                if (ms->meshShader) score += 300;
+                break;
+            }
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES:
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES:
+                break;
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_INTEGER_DOT_PRODUCT_FEATURES_KHR:
+                break;
+            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2:
+                break;
+            default:
+                if (p->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2) break;
+        }
+    }
+    if (feats2->features.shaderInt64) score += 150;
+
     return score;
 }
 
@@ -224,6 +291,38 @@ VkImageAspectFlags GetAspectFlags(VkFormat format) {
         default:
             return VK_IMAGE_ASPECT_COLOR_BIT;
     }
+}
+
+VkCommandBuffer BeginSingleTimeCommands(VkDevice device, VkCommandPool pool) {
+    VkCommandBufferAllocateInfo alloc{};
+    alloc.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    alloc.commandPool = pool;
+    alloc.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    alloc.commandBufferCount = 1;
+
+    VkCommandBuffer cmd;
+    vkAllocateCommandBuffers(device, &alloc, &cmd);
+
+    VkCommandBufferBeginInfo begin{};
+    begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cmd, &begin);
+
+    return cmd;
+}
+
+void EndSingleTimeCommands(VkDevice device, VkCommandPool pool, VkQueue queue, VkCommandBuffer cmd) {
+    vkEndCommandBuffer(cmd);
+
+    VkSubmitInfo submit{};
+    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit.commandBufferCount = 1;
+    submit.pCommandBuffers = &cmd;
+
+    vkQueueSubmit(queue, 1, &submit, VK_NULL_HANDLE);
+    vkQueueWaitIdle(queue);
+
+    vkFreeCommandBuffers(device, pool, 1, &cmd);
 }
 
 }

@@ -14,7 +14,7 @@ public:
     FenceCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
     FenceCreateInfo& set_flags(VkFenceCreateFlags flags) { _flags = flags; return *this; }
 
-    VkFenceCreateInfo to_vk_fence_create_info() const {
+    VkFenceCreateInfo to_vk() const {
         VkFenceCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -30,6 +30,7 @@ private:
 
 class Fence {
 public:
+    Fence() noexcept = default;
     Fence(VkDevice device, const VkFenceCreateInfo& create_info)
         : _device(device)
     {

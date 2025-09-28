@@ -21,7 +21,7 @@ public:
     AllocationCreateInfo& set_user_data(void* user_data) { _user_data = user_data; return *this; }
     AllocationCreateInfo& set_priority(float priority) { _priority = priority; return *this; }
 
-    VmaAllocationCreateInfo to_vma_allocation_create_info() const {
+    VmaAllocationCreateInfo to_vk() const {
         VmaAllocationCreateInfo ci{};
         ci.flags = _flags;
         ci.usage = _usage;
@@ -59,7 +59,7 @@ public:
     AllocatorCreateInfo& set_p_heap_size_limits(const VkDeviceSize* heap_size_limits) { _p_heap_size_limits = heap_size_limits; return *this; }
     AllocatorCreateInfo& set_p_type_external_memory_handle_types(const uint32_t* handle_types) { _p_type_external_memory_handle_types = handle_types; return *this; }
     
-    VmaAllocatorCreateInfo to_vk_allocator_create_info() {
+    VmaAllocatorCreateInfo to_vk() {
         if (_p_vulkan_functions != nullptr) {
             if (_p_vulkan_functions->vkGetInstanceProcAddr == nullptr) {
                 _p_vulkan_functions->vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
@@ -125,6 +125,7 @@ private:
 
 class Allocator {
 public:
+    Allocator() noexcept = default;
     Allocator(const VmaAllocatorCreateInfo& ci) {
         if (vmaCreateAllocator(&ci, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create vma allocator" << std::endl;

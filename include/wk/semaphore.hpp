@@ -14,7 +14,7 @@ public:
     SemaphoreCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
     SemaphoreCreateInfo& set_flags(VkSemaphoreCreateFlags flags) { _flags = flags; return *this; }
 
-    VkSemaphoreCreateInfo to_vk_semaphore_create_info() const {
+    VkSemaphoreCreateInfo to_vk() const {
         VkSemaphoreCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -30,6 +30,7 @@ private:
 
 class Semaphore {
 public:
+    Semaphore() noexcept = default;
     Semaphore(VkDevice device, const VkSemaphoreCreateInfo& create_info)
         : _device(device)
     {

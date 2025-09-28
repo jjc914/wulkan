@@ -21,7 +21,7 @@ public:
     AttachmentDescription& set_initial_layout(VkImageLayout layout) { _initial_layout = layout; return *this; }
     AttachmentDescription& set_final_layout(VkImageLayout layout) { _final_layout = layout; return *this; }
 
-    VkAttachmentDescription to_vk_attachment_description() const {
+    VkAttachmentDescription to_vk() const {
         VkAttachmentDescription desc{};
         desc.flags = _flags;
         desc.format = _format;
@@ -52,7 +52,7 @@ public:
     AttachmentReference& set_attachment(uint32_t attachment) { _attachment = attachment; return *this; }
     AttachmentReference& set_layout(VkImageLayout layout) { _layout = layout; return *this; }
 
-    VkAttachmentReference to_vk_attachment_reference() const {
+    VkAttachmentReference to_vk() const {
         VkAttachmentReference ref{};
         ref.attachment = _attachment;
         ref.layout = _layout;
@@ -84,7 +84,7 @@ public:
         _preserve_attachments = attachments; _preserve_attachment_count = count; return *this;
     }
 
-    VkSubpassDescription to_vk_subpass_description() const {
+    VkSubpassDescription to_vk() const {
         VkSubpassDescription desc{};
         desc.flags = _flags;
         desc.pipelineBindPoint = _pipeline_bind_point;
@@ -122,7 +122,7 @@ public:
     SubpassDependency& set_dst_access_mask(VkAccessFlags mask) { _dst_access_mask = mask; return *this; }
     SubpassDependency& set_dependency_flags(VkDependencyFlags flags) { _dependency_flags = flags; return *this; }
 
-    VkSubpassDependency to_vk_subpass_dependency() const {
+    VkSubpassDependency to_vk() const {
         VkSubpassDependency dep{};
         dep.srcSubpass = _src_subpass;
         dep.dstSubpass = _dst_subpass;
@@ -170,7 +170,7 @@ public:
         return *this;
     }
 
-    VkRenderPassCreateInfo to_vk_render_pass_create_info() const {
+    VkRenderPassCreateInfo to_vk() const {
         VkRenderPassCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         ci.pNext = _p_next;
@@ -197,6 +197,7 @@ private:
 
 class RenderPass {
 public:
+    RenderPass() noexcept = default;
     RenderPass(VkDevice device, const VkRenderPassCreateInfo& create_info)
         : _device(device)
     {

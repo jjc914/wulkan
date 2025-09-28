@@ -2,6 +2,7 @@
 #define wulkan_wk_DEVICE_HPP
 
 #include "wulkan_internal.hpp"
+#include "queue.hpp"
 
 #include <cstdint>
 #include <stdexcept>
@@ -36,7 +37,7 @@ public:
         return *this;
     }
     
-    VkSubmitInfo to_vk_submit_info() const {
+    VkSubmitInfo to_vk() const {
         VkSubmitInfo si{};
         si.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         si.pNext = _p_next;
@@ -80,7 +81,7 @@ public:
         return *this;
     }
 
-    VkPresentInfoKHR to_vk_present_info() const {
+    VkPresentInfoKHR to_vk() const {
         VkPresentInfoKHR pi{};
         pi.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         pi.pNext = _p_next;
@@ -110,7 +111,7 @@ public:
     DeviceQueueCreateInfo& set_queue_count(uint32_t count) { _queue_count = count; return *this; }
     DeviceQueueCreateInfo& set_p_queue_priorities(const float* priorities) { _p_queue_priorities = priorities; return *this; }
 
-    VkDeviceQueueCreateInfo to_vk_device_queue_create_info() const {
+    VkDeviceQueueCreateInfo to_vk() const {
         VkDeviceQueueCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -145,7 +146,7 @@ public:
         return *this;
     }    
 
-    VkDeviceCreateInfo to_vk_device_create_info() {
+    VkDeviceCreateInfo to_vk() {
         VkDeviceCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -171,18 +172,25 @@ private:
 
 class Device {
 public:
+    Device() noexcept = default;
     Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
         if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create logical device" << std::endl;
         }
-        
+
+        VkQueue graphics_q = VK_NULL_HANDLE;
+        VkQueue present_q = VK_NULL_HANDLE;
+
         if (indices.is_unique()) {
-            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &_graphics_queue);
-            vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &_present_queue);
+            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
+            vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &present_q);
         } else {
-            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &_graphics_queue);
-            _present_queue = _graphics_queue;
+            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
+            present_q = graphics_q;
         }
+
+        _graphics_queue = Queue(graphics_q);
+        _present_queue  = Queue(present_q);
     }
 
     ~Device() {
@@ -196,8 +204,8 @@ public:
 
     Device(Device&& other) noexcept
         : _handle(other._handle),
-          _graphics_queue(other._graphics_queue),
-          _present_queue(other._present_queue) 
+          _graphics_queue(std::move(other._graphics_queue)),
+          _present_queue(std::move(other._present_queue)) 
     {
         other._handle = VK_NULL_HANDLE;
     }
@@ -209,8 +217,8 @@ public:
             }
 
             _handle = other._handle;
-            _graphics_queue = other._graphics_queue;
-            _present_queue = other._present_queue;
+            _graphics_queue = std::move(other._graphics_queue);
+            _present_queue = std::move(other._present_queue);
 
             other._handle = VK_NULL_HANDLE;
         }
@@ -218,14 +226,15 @@ public:
     }
 
     const VkDevice& handle() const { return _handle; }
-    const VkQueue& graphics_queue() const { return _graphics_queue; }
-    const VkQueue& present_queue() const { return _present_queue; }
+    const Queue& graphics_queue() const { return _graphics_queue; }
+    const Queue& present_queue() const { return _present_queue; }
+
 private:
-    VkDevice _handle;
-    VkQueue _graphics_queue;
-    VkQueue _present_queue;
+    VkDevice _handle = VK_NULL_HANDLE;
+    Queue _graphics_queue;
+    Queue _present_queue;
 };
 
-}
+} // namespace wk
 
 #endif

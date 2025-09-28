@@ -10,6 +10,24 @@
 
 namespace wk {
 
+class BufferDeviceAddressInfo {
+public:
+    BufferDeviceAddressInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    BufferDeviceAddressInfo& set_buffer(VkBuffer buffer) { _buffer = buffer; return *this; }
+
+    VkBufferDeviceAddressInfoKHR to_vk() const {
+        VkBufferDeviceAddressInfoKHR info{};
+        info.sType  = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO_KHR; // extension enum
+        info.pNext  = _p_next;
+        info.buffer = _buffer;
+        return info;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    VkBuffer _buffer = VK_NULL_HANDLE;
+};
+
 class BufferCreateInfo {
 public:
     BufferCreateInfo& set_flags(VkBufferCreateFlags flags) { _flags = flags; return *this; }
@@ -22,7 +40,7 @@ public:
         return *this;
     }
 
-    VkBufferCreateInfo to_vk_buffer_create_info() const {
+    VkBufferCreateInfo to_vk() const {
         VkBufferCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         ci.flags = _flags;
@@ -45,6 +63,7 @@ private:
 
 class Buffer {
 public:
+    Buffer() noexcept = default;
     Buffer(VmaAllocator allocator, const VkBufferCreateInfo& ci, const VmaAllocationCreateInfo& aci)
         : _allocator(allocator)
     {

@@ -15,7 +15,7 @@ public:
     DescriptorBufferInfo& set_offset(VkDeviceSize offset) { _offset = offset; return *this;}
     DescriptorBufferInfo& set_range(VkDeviceSize range) { _range = range; return *this;}
 
-    VkDescriptorBufferInfo to_vk_descriptor_buffer_info() const {
+    VkDescriptorBufferInfo to_vk() const {
         VkDescriptorBufferInfo info{};
         info.buffer = _buffer;
         info.offset = _offset;
@@ -41,7 +41,7 @@ public:
     WriteDescriptorSet& set_p_image_info(const VkDescriptorImageInfo* p_image_info) { _p_image_info = p_image_info; return *this; }
     WriteDescriptorSet& set_p_texel_buffer_view(const VkBufferView* p_texel_buffer_view) { _p_texel_buffer_view = p_texel_buffer_view; return *this; }
 
-    VkWriteDescriptorSet to_vk_write_descriptor_set() const {
+    VkWriteDescriptorSet to_vk() const {
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         write.pNext = _p_next;
@@ -79,7 +79,7 @@ public:
         return *this; 
     }
 
-    VkDescriptorSetAllocateInfo to_vk_descriptor_set_allocate_info() const {
+    VkDescriptorSetAllocateInfo to_vk() const {
         VkDescriptorSetAllocateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         info.pNext = _p_next;
@@ -99,6 +99,7 @@ private:
 
 class DescriptorSet {
 public:
+    DescriptorSet() noexcept = default;
     DescriptorSet(VkDevice device, const VkDescriptorSetAllocateInfo& ai)
         : _device(device), _pool(ai.descriptorPool)
     {

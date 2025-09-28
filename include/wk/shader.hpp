@@ -19,7 +19,7 @@ public:
         return *this;
     }
 
-    VkShaderModuleCreateInfo to_vk_shader_module_create_info() const {
+    VkShaderModuleCreateInfo to_vk() const {
         VkShaderModuleCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -39,6 +39,7 @@ private:
 
 class Shader {
 public:
+    Shader() noexcept = default;
     Shader(VkDevice device, const VkShaderModuleCreateInfo& create_info)
         : _device(device)
     {

@@ -17,7 +17,7 @@ public:
     ComponentMapping& set_b(VkComponentSwizzle swizzle) { _b = swizzle; return *this; }
     ComponentMapping& set_a(VkComponentSwizzle swizzle) { _a = swizzle; return *this; }
 
-    VkComponentMapping to_vk_component_mapping() const {
+    VkComponentMapping to_vk() const {
         VkComponentMapping cm{};
         cm.r = _r;
         cm.g = _g;
@@ -50,7 +50,7 @@ public:
     ImageSubresourceRange& set_base_array_layer(uint32_t base_array_layer) { _base_array_layer = base_array_layer; return *this; }
     ImageSubresourceRange& set_layer_count(uint32_t layer_count) { _layer_count = layer_count; return *this; }
 
-    VkImageSubresourceRange to_vk_image_subresource_range() const {
+    VkImageSubresourceRange to_vk() const {
         VkImageSubresourceRange range{};
         range.aspectMask = _aspect_mask;
         range.baseMipLevel = _base_mip_level;
@@ -104,7 +104,7 @@ public:
     ImageViewCreateInfo& set_components(VkComponentMapping components) { _components = components; return *this; }
     ImageViewCreateInfo& set_subresource_range(VkImageSubresourceRange subresource_range) { _subresource_range = subresource_range; return *this; }
 
-    VkImageViewCreateInfo to_vk_image_view_create_info() const {
+    VkImageViewCreateInfo to_vk() const {
         VkImageViewCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         ci.pNext = _p_next;
@@ -129,6 +129,7 @@ private:
 
 class ImageView {
 public:
+    ImageView() noexcept = default;
     ImageView(VkDevice device, const VkImageViewCreateInfo& create_info)
         : _device(device)
     {

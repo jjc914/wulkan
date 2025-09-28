@@ -21,7 +21,7 @@ public:
         return *this; 
     }
 
-    VkDescriptorSetLayoutBinding to_vk_descriptor_set_layout_binding() const {
+    VkDescriptorSetLayoutBinding to_vk() const {
         VkDescriptorSetLayoutBinding binding_info{};
         binding_info.binding = _binding;
         binding_info.descriptorType = _descriptor_type;
@@ -45,7 +45,7 @@ public:
     DescriptorSetLayoutCreateInfo& set_flags(VkDescriptorSetLayoutCreateFlags flags) { _flags = flags; return *this; }
     DescriptorSetLayoutCreateInfo& set_bindings(uint32_t binding_count, const VkDescriptorSetLayoutBinding* bindings) { _binding_count = binding_count; _p_bindings = bindings; return *this; }
     
-    VkDescriptorSetLayoutCreateInfo to_vk_descriptor_set_layout_create_info() const {
+    VkDescriptorSetLayoutCreateInfo to_vk() const {
         VkDescriptorSetLayoutCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         ci.pNext = _p_next;
@@ -65,6 +65,7 @@ private:
 
 class DescriptorSetLayout {
 public:
+    DescriptorSetLayout() noexcept = default;
     DescriptorSetLayout(VkDevice device, const VkDescriptorSetLayoutCreateInfo& ci)
         : _device(device)
     {

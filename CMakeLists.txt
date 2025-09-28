@@ -62,7 +62,7 @@ if(WULKAN_BUILD_EXAMPLES AND PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         ${CMAKE_SOURCE_DIR}/examples/*)
 
     foreach(EXAMPLE_DIR IN LISTS EXAMPLE_PATHS)
-        if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${EXAMPLE_DIR})
+        if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${EXAMPLE_DIR})
             message(STATUS "Adding example subdir: ${EXAMPLE_DIR}")
             add_subdirectory(${EXAMPLE_DIR})
         endif()

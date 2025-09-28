@@ -18,7 +18,10 @@ target_link_libraries(imgui PRIVATE glfw Vulkan::Vulkan)
 # ----------------
 # executable
 # ----------------
-add_executable(example1_basic src/main.cpp)
+add_executable(example1_basic 
+    src/main.cpp
+    src/app.hpp src/app.cpp
+)
 target_include_directories(example1_basic PUBLIC src)
 set_target_properties(example1_basic PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/example1_basic"

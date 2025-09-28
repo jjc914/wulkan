@@ -18,7 +18,7 @@ public:
     DebugMessengerCreateInfo& set_user_callback(PFN_vkDebugUtilsMessengerCallbackEXT callback) { _user_callback = callback; return *this; }
     DebugMessengerCreateInfo& set_user_data(void* user_data) { _user_data = user_data; return *this; }
 
-    VkDebugUtilsMessengerCreateInfoEXT to_vk_debug_messenger_create_info() const {
+    VkDebugUtilsMessengerCreateInfoEXT to_vk() const {
         VkDebugUtilsMessengerCreateInfoEXT ci{};
         ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         ci.pNext = _p_next;
@@ -40,6 +40,7 @@ private:
 
 class DebugMessenger {
 public:
+    DebugMessenger() noexcept = default;
     DebugMessenger(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT ci)
         : _instance(instance) 
     {

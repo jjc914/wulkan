@@ -35,7 +35,7 @@ public:
     SwapchainCreateInfo& set_clipped(VkBool32 clipped) { _clipped = clipped; return *this; }
     SwapchainCreateInfo& set_old_swapchain(VkSwapchainKHR swapchain) { _old_swapchain = swapchain; return *this; }
 
-    VkSwapchainCreateInfoKHR to_vk_swapchain_create_info() const {
+    VkSwapchainCreateInfoKHR to_vk() const {
         VkSwapchainCreateInfoKHR ci{};
         ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         ci.pNext = _p_next;
@@ -80,8 +80,11 @@ private:
 
 class Swapchain {
 public:
+    Swapchain() noexcept = default;
     Swapchain(VkDevice device, const VkSwapchainCreateInfoKHR& ci)
-        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent)
+        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent), 
+          _queue_family_indices(ci.pQueueFamilyIndices, ci.pQueueFamilyIndices + ci.queueFamilyIndexCount),
+          _image_sharing_mode(ci.imageSharingMode) 
     {
         if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create swapchain" << std::endl;
@@ -98,9 +101,9 @@ public:
                 .set_image(_images[i])
                 .set_view_type(VK_IMAGE_VIEW_TYPE_2D)
                 .set_format(_image_format)
-                .set_components(ComponentMapping::identity().to_vk_component_mapping())
-                .set_subresource_range(ImageSubresourceRange::color().to_vk_image_subresource_range())
-                .to_vk_image_view_create_info();
+                .set_components(ComponentMapping::identity().to_vk())
+                .set_subresource_range(ImageSubresourceRange::color().to_vk())
+                .to_vk();
             if (vkCreateImageView(_device, &view_info, nullptr, &_image_views[i]) != VK_SUCCESS) {
                 std::cerr << "failed to create image views" << std::endl;
             }
@@ -120,7 +123,9 @@ public:
           _images(std::move(other._images)),
           _image_format(other._image_format),
           _extent(other._extent),
-          _image_views(std::move(other._image_views))
+          _image_views(std::move(other._image_views)),
+          _queue_family_indices(other._queue_family_indices),
+          _image_sharing_mode(other._image_sharing_mode)
     {
         other._handle = VK_NULL_HANDLE;
         other._device = VK_NULL_HANDLE;
@@ -136,6 +141,8 @@ public:
             _image_format = other._image_format;
             _extent = other._extent;
             _image_views = std::move(other._image_views);
+            _queue_family_indices = other._queue_family_indices;
+            _image_sharing_mode = other._image_sharing_mode;
 
             other._handle = VK_NULL_HANDLE;
             other._device = VK_NULL_HANDLE;
@@ -146,7 +153,10 @@ public:
     const VkSwapchainKHR& handle() const { return _handle; }
     const VkFormat& image_format() const { return _image_format; }
     const std::vector<VkImageView>& image_views() const { return _image_views; }
+    uint32_t image_count() const { return static_cast<uint32_t>(_images.size()); }
     const VkExtent2D& extent() const { return _extent; }
+    const std::vector<uint32_t>& queue_family_indices() const { return _queue_family_indices; }
+    const VkSharingMode& image_sharing_mode() const { return _image_sharing_mode; }
 private:
     void Destroy() {
         for (size_t i = 0; i < _image_views.size(); ++i) {
@@ -165,6 +175,8 @@ private:
     VkFormat _image_format;
     VkExtent2D _extent;
     std::vector<VkImageView> _image_views;
+    std::vector<uint32_t> _queue_family_indices;
+    VkSharingMode _image_sharing_mode;
 };
 
 }

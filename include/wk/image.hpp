@@ -29,7 +29,7 @@ public:
     VkExtent2D to_vk_extent_2d() const {
         return VkExtent2D{ _width, _height };
     }
-    VkExtent3D to_vk_extent_3d() const {
+    VkExtent3D to_vk() const {
         return VkExtent3D{ _width, _height, _depth };
     }
 
@@ -59,7 +59,7 @@ public:
     }
     ImageCreateInfo& set_initial_layout(VkImageLayout layout) { _initial_layout = layout; return *this; }
 
-    VkImageCreateInfo to_vk_image_create_info() const {
+    VkImageCreateInfo to_vk() const {
         VkImageCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -98,6 +98,7 @@ private:
 
 class Image {
 public:
+    Image() noexcept = default;
     Image(VmaAllocator allocator, const VkImageCreateInfo& create_info, const VmaAllocationCreateInfo& alloc_info)
         : _allocator(allocator)
     {

@@ -18,7 +18,7 @@ public:
     Viewport& set_min_depth(float min_depth) { _min_depth = min_depth; return *this; }
     Viewport& set_max_depth(float max_depth) { _max_depth = max_depth; return *this; }
 
-    VkViewport to_vk_viewport() {
+    VkViewport to_vk() {
         VkViewport viewport{};
         viewport.x = _x;
         viewport.y = _y;
@@ -42,7 +42,7 @@ public:
     Rect2D& set_offset(VkOffset2D offset) { _offset = offset; return *this; }
     Rect2D& set_extent(VkExtent2D extent) { _extent = extent; return *this; }
 
-    VkRect2D to_vk_rect_2D() {
+    VkRect2D to_vk() {
         VkRect2D scissor{};
         scissor.offset = _offset;
         scissor.extent = _extent;
@@ -64,7 +64,7 @@ public:
         _p_specialization_info = p_specialization_info; return *this;
     }
 
-    VkPipelineShaderStageCreateInfo to_vk_pipeline_shader_stage_create_info() const {
+    VkPipelineShaderStageCreateInfo to_vk() const {
         VkPipelineShaderStageCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -91,7 +91,7 @@ public:
     VertexInputBindingDescription& set_stride(uint32_t stride) { _stride = stride; return *this; }
     VertexInputBindingDescription& set_input_rate(VkVertexInputRate input_rate) { _input_rate = input_rate; return *this; }
 
-    VkVertexInputBindingDescription to_vk_vertex_input_binding_description() const {
+    VkVertexInputBindingDescription to_vk() const {
         VkVertexInputBindingDescription desc{};
         desc.binding = _binding;
         desc.stride = _stride;
@@ -132,7 +132,7 @@ public:
     VertexInputAttributeDescription& set_format(VkFormat format) { _format = format; return *this; }
     VertexInputAttributeDescription& set_offset(uint32_t offset) { _offset = offset; return *this; }
 
-    VkVertexInputAttributeDescription to_vk_vertex_input_attribute_description() {
+    VkVertexInputAttributeDescription to_vk() {
         VkVertexInputAttributeDescription vkad{};
         vkad.location = _location;
         vkad.binding = _binding;
@@ -157,7 +157,7 @@ public:
         return *this;
     }
 
-    VkPipelineDynamicStateCreateInfo to_vk_pipeline_dynamic_state_create_info() const {
+    VkPipelineDynamicStateCreateInfo to_vk() const {
         VkPipelineDynamicStateCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -189,7 +189,7 @@ public:
         return *this;
     }
 
-    VkPipelineVertexInputStateCreateInfo to_vk_pipeline_vertex_input_state_create_info() const {
+    VkPipelineVertexInputStateCreateInfo to_vk() const {
         VkPipelineVertexInputStateCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -217,7 +217,7 @@ public:
     PipelineInputAssemblyStateCreateInfo& set_topology(VkPrimitiveTopology topology) { _topology = topology; return *this; }
     PipelineInputAssemblyStateCreateInfo& set_primitive_restart_enable(VkBool32 enable) { _primitive_restart_enable = enable; return *this; }
 
-    VkPipelineInputAssemblyStateCreateInfo to_vk_pipeline_input_assembly_state_create_info() const {
+    VkPipelineInputAssemblyStateCreateInfo to_vk() const {
         VkPipelineInputAssemblyStateCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -241,7 +241,7 @@ public:
     PipelineViewportStateCreateInfo& set_viewports(uint32_t count, const VkViewport* p_viewports) { _viewport_count = count; _p_viewports = p_viewports; return *this; }
     PipelineViewportStateCreateInfo& set_scissors(uint32_t count, const VkRect2D* p_scissors) { _scissor_count = count; _p_scissors = p_scissors; return *this; }
 
-    VkPipelineViewportStateCreateInfo to_vk_pipeline_viewport_state_create_info() const {
+    VkPipelineViewportStateCreateInfo to_vk() const {
         VkPipelineViewportStateCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -277,7 +277,7 @@ public:
     PipelineRasterizationStateCreateInfo& set_depth_bias_slope_factor(float factor) { _depth_bias_slope_factor = factor; return *this; }
     PipelineRasterizationStateCreateInfo& set_line_width(float width) { _line_width = width; return *this; }
 
-    VkPipelineRasterizationStateCreateInfo to_vk_pipeline_rasterization_state_create_info() const {
+    VkPipelineRasterizationStateCreateInfo to_vk() const {
         VkPipelineRasterizationStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         info.pNext = _p_next;
@@ -321,7 +321,7 @@ public:
     PipelineMultisampleStateCreateInfo& set_alpha_to_coverage_enable(VkBool32 enable) { _alpha_to_coverage_enable = enable; return *this; }
     PipelineMultisampleStateCreateInfo& set_alpha_to_one_enable(VkBool32 enable) { _alpha_to_one_enable = enable; return *this; }
 
-    VkPipelineMultisampleStateCreateInfo to_vk_pipeline_multisample_state_create_info() const {
+    VkPipelineMultisampleStateCreateInfo to_vk() const {
         VkPipelineMultisampleStateCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -360,7 +360,7 @@ class PipelineDepthStencilStateCreateInfo {
         PipelineDepthStencilStateCreateInfo& set_min_depth_bounds(float min_bounds) { _min_depth_bounds = min_bounds; return *this; }
         PipelineDepthStencilStateCreateInfo& set_max_depth_bounds(float max_bounds) { _max_depth_bounds = max_bounds; return *this; }
     
-        VkPipelineDepthStencilStateCreateInfo to_vk_pipeline_depth_stencil_state_create_info() const {
+        VkPipelineDepthStencilStateCreateInfo to_vk() const {
             VkPipelineDepthStencilStateCreateInfo ci{};
             ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
             ci.pNext = _p_next;
@@ -402,7 +402,7 @@ public:
     PipelineColorBlendAttachmentState& set_alpha_blend_op(VkBlendOp op) { _alpha_blend_op = op; return *this; }
     PipelineColorBlendAttachmentState& set_color_write_mask(VkColorComponentFlags mask) { _color_write_mask = mask; return *this; }
 
-    VkPipelineColorBlendAttachmentState to_vk_pipeline_color_blend_attachment_state() const {
+    VkPipelineColorBlendAttachmentState to_vk() const {
         VkPipelineColorBlendAttachmentState state{};
         state.blendEnable = _blend_enable;
         state.srcColorBlendFactor = _src_color_blend_factor;
@@ -445,7 +445,7 @@ public:
         return *this;
     }
 
-    VkPipelineColorBlendStateCreateInfo to_vk_pipeline_color_blend_state_create_info() const {
+    VkPipelineColorBlendStateCreateInfo to_vk() const {
         VkPipelineColorBlendStateCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -494,7 +494,7 @@ public:
     PipelineCreateInfo& set_base_pipeline_handle(VkPipeline base_pipeline_handle) { _base_pipeline_handle = base_pipeline_handle; return *this; }
     PipelineCreateInfo& set_base_pipeline_index(int32_t base_pipeline_index) { _base_pipeline_index = base_pipeline_index; return *this; }
 
-    VkGraphicsPipelineCreateInfo to_vk_graphics_pipeline_create_info() const {
+    VkGraphicsPipelineCreateInfo to_vk() const {
         VkGraphicsPipelineCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         ci.pNext = _p_next;
@@ -542,10 +542,9 @@ private:
 
 class Pipeline {
 public:
+    Pipeline() noexcept = default;
     Pipeline(VkDevice device, const VkGraphicsPipelineCreateInfo& ci)
-        : _device(device), 
-          _viewport(*ci.pViewportState->pViewports),
-          _scissor(*ci.pViewportState->pScissors)
+        : _device(device) 
     {
         if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create graphics pipeline" << std::endl;
@@ -561,9 +560,7 @@ public:
 
     Pipeline(Pipeline&& other) noexcept
         : _handle(other._handle),
-          _device(other._device),
-          _viewport(other._viewport),
-          _scissor(other._scissor)
+          _device(other._device)
     {
         other._handle = VK_NULL_HANDLE;
         other._device = VK_NULL_HANDLE;
@@ -574,8 +571,6 @@ public:
             Destroy();
             _handle = other._handle;
             _device = other._device;
-            _viewport = other._viewport;
-            _scissor = other._scissor;
             other._handle = VK_NULL_HANDLE;
             other._device = VK_NULL_HANDLE;
         }
@@ -583,8 +578,6 @@ public:
     }
 
     const VkPipeline& handle() const { return _handle; }
-    const VkViewport& viewport() const { return _viewport; }
-    const VkRect2D& scissor() const { return _scissor; }
 private:
     void Destroy() {
         if (_handle != VK_NULL_HANDLE) {
@@ -595,8 +588,6 @@ private:
 
     VkPipeline _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
-    VkViewport _viewport{};
-    VkRect2D _scissor{};
 };
 
 }

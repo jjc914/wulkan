@@ -47,13 +47,25 @@ DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR
 bool IsPhysicalDeviceExtensionSupported(VkPhysicalDevice device, const std::vector<const char*>& required_extensions);
 PhysicalDeviceSurfaceSupport GetPhysicalDeviceSurfaceSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface);
-int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface);
+using PhysicalDeviceFeatureScorer = int32_t(*)(VkPhysicalDevice, const VkPhysicalDeviceFeatures2*);
+int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface, VkPhysicalDeviceFeatures2* feature_chain, PhysicalDeviceFeatureScorer scorer);
+int32_t DefaultPhysicalDeviceFeatureScorer(VkPhysicalDevice device, const VkPhysicalDeviceFeatures2* features);
 VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
 VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<VkFormat>& requested_formats);
 VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKHR>& available_present_modes);
 VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceCapabilitiesKHR& capabilities);
 std::vector<uint8_t> ReadSpirvShader(const char* file_name);
 VkImageAspectFlags GetAspectFlags(VkFormat format);
+VkCommandBuffer BeginSingleTimeCommands(VkDevice device, VkCommandPool pool);
+void EndSingleTimeCommands(VkDevice device, VkCommandPool pool, VkQueue queue, VkCommandBuffer cmd);
+
+template<typename T>
+T AlignUp(T value, T alignment) {
+    static_assert(std::is_unsigned_v<T>,
+        "AlignUp requires an unsigned integral type");
+    return alignment == 0 ? value
+        : (value + alignment - 1) / alignment * alignment;
+}
 
 }
 

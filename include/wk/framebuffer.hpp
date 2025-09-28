@@ -22,7 +22,7 @@ public:
     FramebufferCreateInfo& set_extent(VkExtent2D extent) { _extent = extent; return *this; }
     FramebufferCreateInfo& set_layers(uint32_t layers) { _layers = layers; return *this; }
 
-    VkFramebufferCreateInfo to_vk_framebuffer_create_info() const {
+    VkFramebufferCreateInfo to_vk() const {
         VkFramebufferCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         ci.pNext = _p_next;
@@ -49,6 +49,7 @@ private:
 
 class Framebuffer {
 public:
+    Framebuffer() noexcept = default;
     Framebuffer(VkDevice device, const VkFramebufferCreateInfo& create_info)
         : _device(device)
     {

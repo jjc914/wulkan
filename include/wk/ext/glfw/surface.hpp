@@ -11,6 +11,7 @@ namespace wk::ext::glfw {
 
 class Surface {
 public:
+    Surface() : _handle(VK_NULL_HANDLE) {}
     Surface(VkInstance instance, GLFWwindow* window)
         : _instance(instance) 
     {

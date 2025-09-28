@@ -15,7 +15,7 @@ public:
     BufferCopy& set_dst_offset(VkDeviceSize dst_offset) {_dst_offset = dst_offset; return *this; }
     BufferCopy& set_size(VkDeviceSize size) {_size = size; return *this; }
 
-    VkBufferCopy to_vk_buffer_copy() {
+    VkBufferCopy to_vk() {
         VkBufferCopy copy{};
         copy.srcOffset = _src_offset;
         copy.dstOffset = _dst_offset;
@@ -36,7 +36,7 @@ public:
     }
     CommandBufferBeginInfo& set_p_next(const void* pnext) { _p_next = pnext; return *this; }
 
-    VkCommandBufferBeginInfo to_vk_command_buffer_begin_info() const {
+    VkCommandBufferBeginInfo to_vk() const {
         VkCommandBufferBeginInfo bi{};
         bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         bi.pNext = _p_next;
@@ -63,7 +63,7 @@ public:
         return *this;
     }
     
-    VkClearValue to_vk_clear_value() const {
+    VkClearValue to_vk() const {
         return _value;
     }
 
@@ -83,7 +83,7 @@ public:
         return *this; 
     }
     
-    VkRenderPassBeginInfo to_vk_render_pass_begin_info() const {
+    VkRenderPassBeginInfo to_vk() const {
         VkRenderPassBeginInfo bi{};
         bi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         bi.pNext = _p_next;
@@ -112,7 +112,7 @@ public:
     CommandBufferAllocateInfo& set_command_buffer_count(uint32_t count) { _command_buffer_count = count; return *this; }
     CommandBufferAllocateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
 
-    VkCommandBufferAllocateInfo to_vk_command_buffer_allocate_info() const {
+    VkCommandBufferAllocateInfo to_vk() const {
         VkCommandBufferAllocateInfo ai{};
         ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         ai.pNext = _p_next;
@@ -132,6 +132,7 @@ private:
 
 class CommandBuffer {
 public:
+    CommandBuffer() noexcept = default;
     CommandBuffer(VkDevice device, const VkCommandBufferAllocateInfo& ai)
         : _device(device), _command_pool(ai.commandPool)
     {

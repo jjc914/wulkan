@@ -13,7 +13,7 @@ public:
     DescriptorPoolSize& set_type(VkDescriptorType type) { _type = type; return *this; }
     DescriptorPoolSize& set_descriptor_count(uint32_t count) { _descriptor_count = count; return *this; }
 
-    VkDescriptorPoolSize to_vk_descriptor_pool_size() const {
+    VkDescriptorPoolSize to_vk() const {
         VkDescriptorPoolSize ps{};
         ps.type = _type;
         ps.descriptorCount = _descriptor_count;
@@ -35,7 +35,7 @@ public:
         return *this;
     }
 
-    VkDescriptorPoolCreateInfo to_vk_descriptor_pool_create_info() const {
+    VkDescriptorPoolCreateInfo to_vk() const {
         VkDescriptorPoolCreateInfo ci{};
         ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         ci.pNext = _p_next;
@@ -56,8 +56,10 @@ private:
 
 class DescriptorPool {
 public:
+    DescriptorPool() noexcept = default;
     DescriptorPool(VkDevice device, const VkDescriptorPoolCreateInfo& create_info)
-        : _device(device) {
+        : _device(device) 
+    {
         if (vkCreateDescriptorPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create descriptor pool" << std::endl;
         }
