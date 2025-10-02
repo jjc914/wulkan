@@ -8,6 +8,52 @@
 
 namespace wk {
 
+class DescriptorPool {
+public:
+    DescriptorPool() = default;
+    DescriptorPool(VkDevice device, const VkDescriptorPoolCreateInfo& create_info)
+        : _device(device) 
+    {
+        if (vkCreateDescriptorPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create descriptor pool" << std::endl;
+        }
+    }
+
+    ~DescriptorPool() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyDescriptorPool(_device, _handle, nullptr);
+        }
+    }
+
+    DescriptorPool(const DescriptorPool&) = delete;
+    DescriptorPool& operator=(const DescriptorPool&) = delete;
+
+    DescriptorPool(DescriptorPool&& other) noexcept
+        : _handle(other._handle), _device(other._device) {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    DescriptorPool& operator=(DescriptorPool&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyDescriptorPool(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkDescriptorPool& handle() const { return _handle; }
+    
+private:
+    VkDescriptorPool _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+};
+
 class DescriptorPoolSize {
 public:
     DescriptorPoolSize& set_type(VkDescriptorType type) { _type = type; return *this; }
@@ -52,52 +98,6 @@ private:
     uint32_t _max_sets = 0;
     uint32_t _pool_size_count = 0;
     const VkDescriptorPoolSize* _pool_sizes = nullptr;
-};
-
-class DescriptorPool {
-public:
-    DescriptorPool() noexcept = default;
-    DescriptorPool(VkDevice device, const VkDescriptorPoolCreateInfo& create_info)
-        : _device(device) 
-    {
-        if (vkCreateDescriptorPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create descriptor pool" << std::endl;
-        }
-    }
-
-    ~DescriptorPool() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyDescriptorPool(_device, _handle, nullptr);
-        }
-    }
-
-    DescriptorPool(const DescriptorPool&) = delete;
-    DescriptorPool& operator=(const DescriptorPool&) = delete;
-
-    DescriptorPool(DescriptorPool&& other) noexcept
-        : _handle(other._handle), _device(other._device) {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-    }
-
-    DescriptorPool& operator=(DescriptorPool&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyDescriptorPool(_device, _handle, nullptr);
-            }
-            _handle = other._handle;
-            _device = other._device;
-            other._handle = VK_NULL_HANDLE;
-            other._device = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkDescriptorPool& handle() const { return _handle; }
-    
-private:
-    VkDescriptorPool _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

@@ -9,28 +9,9 @@
 
 namespace wk {
 
-class FenceCreateInfo {
-public:
-    FenceCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
-    FenceCreateInfo& set_flags(VkFenceCreateFlags flags) { _flags = flags; return *this; }
-
-    VkFenceCreateInfo to_vk() const {
-        VkFenceCreateInfo ci{};
-        ci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        ci.pNext = _p_next;
-        ci.flags = _flags;
-        return ci;
-    }
-
-private:
-    const void* _p_next = nullptr;
-    VkFenceCreateFlags _flags = 0;
-};
-        
-
 class Fence {
 public:
-    Fence() noexcept = default;
+    Fence() = default;
     Fence(VkDevice device, const VkFenceCreateInfo& create_info)
         : _device(device)
     {
@@ -73,6 +54,24 @@ public:
 private:
     VkFence _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
+};
+
+class FenceCreateInfo {
+public:
+    FenceCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    FenceCreateInfo& set_flags(VkFenceCreateFlags flags) { _flags = flags; return *this; }
+
+    VkFenceCreateInfo to_vk() const {
+        VkFenceCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        return ci;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    VkFenceCreateFlags _flags = 0;
 };
 
 }

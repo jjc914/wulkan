@@ -32,7 +32,9 @@ if(WULKAN_ENABLE_RT)
     )
     add_library(wulkan_rt STATIC ${WK_RT_HEADERS} "src/ext/rt_internal.cpp")
     target_include_directories(wulkan_rt PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-    target_link_libraries(wulkan_rt PUBLIC Vulkan::Vulkan)
+    target_link_libraries(wulkan_rt PUBLIC
+        Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator
+    )
 endif()
 
 file(GLOB_RECURSE WK_HEADERS # get wk headers
@@ -45,7 +47,9 @@ list(FILTER WK_HEADERS EXCLUDE REGEX ".*/include/wk/ext/.*") # remove ext from w
 # ----------------
 add_library(wulkan STATIC ${WK_HEADERS} "src/wulkan_internal.cpp" "src/vma_include.cpp")
 target_include_directories(wulkan PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(wulkan PRIVATE Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator)
+target_link_libraries(wulkan PUBLIC
+    Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator
+)
 
 if(WULKAN_ENABLE_GLFW)
     target_link_libraries(wulkan PUBLIC wulkan_glfw)

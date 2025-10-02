@@ -10,6 +10,51 @@
 
 namespace wk {
 
+class ImageView {
+public:
+    ImageView() = default;
+    ImageView(VkDevice device, const VkImageViewCreateInfo& create_info)
+        : _device(device)
+    {
+        if (vkCreateImageView(device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create image view!" << std::endl;
+        }
+    }
+
+    ~ImageView() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyImageView(_device, _handle, nullptr);
+        }
+    }
+
+    ImageView(const ImageView&) = delete;
+    ImageView& operator=(const ImageView&) = delete;
+
+    ImageView(ImageView&& other) noexcept
+        : _device(other._device), _handle(other._handle)
+    {
+        other._handle = VK_NULL_HANDLE;
+    }
+
+    ImageView& operator=(ImageView&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyImageView(_device, _handle, nullptr);
+            }
+            _device = other._device;
+            _handle = other._handle;
+            other._handle = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkImageView& handle() const { return _handle; }
+
+private:
+    VkDevice _device = VK_NULL_HANDLE;
+    VkImageView _handle = VK_NULL_HANDLE;
+};
+
 class ComponentMapping {
 public:
     ComponentMapping& set_r(VkComponentSwizzle swizzle) { _r = swizzle; return *this; }
@@ -125,51 +170,6 @@ private:
     VkFormat _format = VK_FORMAT_UNDEFINED;
     VkComponentMapping _components{};
     VkImageSubresourceRange _subresource_range{};
-};
-
-class ImageView {
-public:
-    ImageView() noexcept = default;
-    ImageView(VkDevice device, const VkImageViewCreateInfo& create_info)
-        : _device(device)
-    {
-        if (vkCreateImageView(device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create image view!" << std::endl;
-        }
-    }
-
-    ~ImageView() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyImageView(_device, _handle, nullptr);
-        }
-    }
-
-    ImageView(const ImageView&) = delete;
-    ImageView& operator=(const ImageView&) = delete;
-
-    ImageView(ImageView&& other) noexcept
-        : _device(other._device), _handle(other._handle)
-    {
-        other._handle = VK_NULL_HANDLE;
-    }
-
-    ImageView& operator=(ImageView&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyImageView(_device, _handle, nullptr);
-            }
-            _device = other._device;
-            _handle = other._handle;
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkImageView& handle() const { return _handle; }
-
-private:
-    VkDevice _device = VK_NULL_HANDLE;
-    VkImageView _handle = VK_NULL_HANDLE;
 };
 
 }

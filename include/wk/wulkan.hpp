@@ -1,8 +1,6 @@
 #ifndef wulkan_wk_WULKAN_HPP
 #define wulkan_wk_WULKAN_HPP
 
-#include "wulkan_internal.hpp"
-
 // Core instance & devices
 #include "instance.hpp"
 #include "debug_messenger.hpp"
@@ -51,5 +49,8 @@
 // Memory (VMA + wrappers)
 #include "allocator.hpp"
 #include "buffer.hpp"
+
+// Sync
+#include "sync.hpp"
 
 #endif

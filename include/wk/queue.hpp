@@ -7,7 +7,7 @@ namespace wk {
 
 class Queue {
 public:
-    Queue() noexcept = default;
+    Queue() = default;
     explicit Queue(VkQueue queue) noexcept : _queue(queue) {}
 
     Queue(VkDevice device, uint32_t family_index, uint32_t queue_index = 0) {

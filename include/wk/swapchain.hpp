@@ -12,6 +12,110 @@
 
 namespace wk {
 
+class Swapchain {
+public:
+    Swapchain() = default;
+    Swapchain(VkDevice device, const VkSwapchainCreateInfoKHR& ci)
+        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent), 
+          _queue_family_indices(ci.pQueueFamilyIndices, ci.pQueueFamilyIndices + ci.queueFamilyIndexCount),
+          _image_sharing_mode(ci.imageSharingMode) 
+    {
+        if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create swapchain" << std::endl;
+        }
+
+        uint32_t image_count = 0;
+        vkGetSwapchainImagesKHR(_device, _handle, &image_count, nullptr);
+        _images.resize(image_count);
+        vkGetSwapchainImagesKHR(_device, _handle, &image_count, _images.data());
+
+        _image_views.resize(_images.size());
+        for (size_t i = 0; i < _images.size(); ++i) {
+            VkImageViewCreateInfo view_info = ImageViewCreateInfo{}
+                .set_image(_images[i])
+                .set_view_type(VK_IMAGE_VIEW_TYPE_2D)
+                .set_format(_image_format)
+                .set_components(ComponentMapping::identity().to_vk())
+                .set_subresource_range(ImageSubresourceRange::color().to_vk())
+                .to_vk();
+            if (vkCreateImageView(_device, &view_info, nullptr, &_image_views[i]) != VK_SUCCESS) {
+                std::cerr << "failed to create image views" << std::endl;
+            }
+        }
+    }
+
+    ~Swapchain() {
+        _destroy();
+    }
+
+    Swapchain(const Swapchain&) = delete;
+    Swapchain& operator=(const Swapchain&) = delete;
+
+    Swapchain(Swapchain&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device),
+          _images(std::move(other._images)),
+          _image_format(other._image_format),
+          _extent(other._extent),
+          _image_views(std::move(other._image_views)),
+          _queue_family_indices(other._queue_family_indices),
+          _image_sharing_mode(other._image_sharing_mode)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    Swapchain& operator=(Swapchain&& other) noexcept {
+        if (this != &other) {
+            _destroy();
+
+            _handle = other._handle;
+            _device = other._device;
+            _images = std::move(other._images);
+            _image_format = other._image_format;
+            _extent = other._extent;
+            _image_views = std::move(other._image_views);
+            _queue_family_indices = other._queue_family_indices;
+            _image_sharing_mode = other._image_sharing_mode;
+
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkSwapchainKHR& handle() const { return _handle; }
+    const VkFormat& image_format() const { return _image_format; }
+    const std::vector<VkImage>& images() const { return _images; }
+    const std::vector<VkImageView>& image_views() const { return _image_views; }
+    uint32_t image_count() const { return static_cast<uint32_t>(_images.size()); }
+    const VkExtent2D& extent() const { return _extent; }
+    const std::vector<uint32_t>& queue_family_indices() const { return _queue_family_indices; }
+    const VkSharingMode& image_sharing_mode() const { return _image_sharing_mode; }
+private:
+    void _destroy() {
+        for (size_t i = 0; i < _image_views.size(); ++i) {
+            if (_image_views[i] != VK_NULL_HANDLE) {
+                vkDestroyImageView(_device, _image_views[i], nullptr);
+            }
+        }
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroySwapchainKHR(_device, _handle, nullptr);
+        }
+        _handle = VK_NULL_HANDLE;
+        _device = VK_NULL_HANDLE;
+    }
+
+    VkSwapchainKHR _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+    std::vector<VkImage> _images;
+    VkFormat _image_format;
+    VkExtent2D _extent;
+    std::vector<VkImageView> _image_views;
+    std::vector<uint32_t> _queue_family_indices;
+    VkSharingMode _image_sharing_mode;
+};
+
 class SwapchainCreateInfo {
 public:
     SwapchainCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
@@ -76,107 +180,6 @@ private:
     VkPresentModeKHR _present_mode = VK_PRESENT_MODE_FIFO_KHR;
     VkBool32 _clipped = VK_TRUE;
     VkSwapchainKHR _old_swapchain = VK_NULL_HANDLE;
-};
-
-class Swapchain {
-public:
-    Swapchain() noexcept = default;
-    Swapchain(VkDevice device, const VkSwapchainCreateInfoKHR& ci)
-        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent), 
-          _queue_family_indices(ci.pQueueFamilyIndices, ci.pQueueFamilyIndices + ci.queueFamilyIndexCount),
-          _image_sharing_mode(ci.imageSharingMode) 
-    {
-        if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create swapchain" << std::endl;
-        }
-
-        uint32_t image_count = 0;
-        vkGetSwapchainImagesKHR(_device, _handle, &image_count, nullptr);
-        _images.resize(image_count);
-        vkGetSwapchainImagesKHR(_device, _handle, &image_count, _images.data());
-
-        _image_views.resize(_images.size());
-        for (size_t i = 0; i < _images.size(); ++i) {
-            VkImageViewCreateInfo view_info = ImageViewCreateInfo{}
-                .set_image(_images[i])
-                .set_view_type(VK_IMAGE_VIEW_TYPE_2D)
-                .set_format(_image_format)
-                .set_components(ComponentMapping::identity().to_vk())
-                .set_subresource_range(ImageSubresourceRange::color().to_vk())
-                .to_vk();
-            if (vkCreateImageView(_device, &view_info, nullptr, &_image_views[i]) != VK_SUCCESS) {
-                std::cerr << "failed to create image views" << std::endl;
-            }
-        }
-    }
-
-    ~Swapchain() {
-        Destroy();
-    }
-
-    Swapchain(const Swapchain&) = delete;
-    Swapchain& operator=(const Swapchain&) = delete;
-
-    Swapchain(Swapchain&& other) noexcept
-        : _handle(other._handle),
-          _device(other._device),
-          _images(std::move(other._images)),
-          _image_format(other._image_format),
-          _extent(other._extent),
-          _image_views(std::move(other._image_views)),
-          _queue_family_indices(other._queue_family_indices),
-          _image_sharing_mode(other._image_sharing_mode)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-    }
-
-    Swapchain& operator=(Swapchain&& other) noexcept {
-        if (this != &other) {
-            Destroy();
-
-            _handle = other._handle;
-            _device = other._device;
-            _images = std::move(other._images);
-            _image_format = other._image_format;
-            _extent = other._extent;
-            _image_views = std::move(other._image_views);
-            _queue_family_indices = other._queue_family_indices;
-            _image_sharing_mode = other._image_sharing_mode;
-
-            other._handle = VK_NULL_HANDLE;
-            other._device = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkSwapchainKHR& handle() const { return _handle; }
-    const VkFormat& image_format() const { return _image_format; }
-    const std::vector<VkImageView>& image_views() const { return _image_views; }
-    uint32_t image_count() const { return static_cast<uint32_t>(_images.size()); }
-    const VkExtent2D& extent() const { return _extent; }
-    const std::vector<uint32_t>& queue_family_indices() const { return _queue_family_indices; }
-    const VkSharingMode& image_sharing_mode() const { return _image_sharing_mode; }
-private:
-    void Destroy() {
-        for (size_t i = 0; i < _image_views.size(); ++i) {
-            if (_image_views[i] != VK_NULL_HANDLE) {
-                vkDestroyImageView(_device, _image_views[i], nullptr);
-            }
-        }
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroySwapchainKHR(_device, _handle, nullptr);
-        }
-    }
-
-    VkSwapchainKHR _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
-    std::vector<VkImage> _images;
-    VkFormat _image_format;
-    VkExtent2D _extent;
-    std::vector<VkImageView> _image_views;
-    std::vector<uint32_t> _queue_family_indices;
-    VkSharingMode _image_sharing_mode;
 };
 
 }

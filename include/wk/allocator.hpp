@@ -10,6 +10,47 @@
 
 namespace wk {
 
+class Allocator {
+public:
+    Allocator() = default;
+    Allocator(const VmaAllocatorCreateInfo& ci) {
+        if (vmaCreateAllocator(&ci, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create vma allocator" << std::endl;
+        }
+    }
+
+    ~Allocator() {
+        if (_handle != VK_NULL_HANDLE) {
+            vmaDestroyAllocator(_handle);
+        }
+    }
+
+    Allocator(const Allocator&) = delete;
+    Allocator& operator=(const Allocator&) = delete;
+
+    Allocator(Allocator&& other) noexcept
+        : _handle(other._handle)
+    {
+        other._handle = VK_NULL_HANDLE;
+    }
+
+    Allocator& operator=(Allocator&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vmaDestroyAllocator(_handle);
+            }
+            _handle = other._handle;
+            other._handle = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VmaAllocator& handle() const { return _handle; }
+    
+private:
+    VmaAllocator _handle = VK_NULL_HANDLE;
+};
+
 class AllocationCreateInfo {
 public:
     AllocationCreateInfo& set_flags(VmaAllocationCreateFlags flags) { _flags = flags; return *this; }
@@ -121,47 +162,6 @@ private:
     const VkDeviceSize* _p_heap_size_limits = nullptr;
     const uint32_t* _p_type_external_memory_handle_types = nullptr;
     VkDeviceSize _preferred_large_heap_block_size = 0;
-};
-
-class Allocator {
-public:
-    Allocator() noexcept = default;
-    Allocator(const VmaAllocatorCreateInfo& ci) {
-        if (vmaCreateAllocator(&ci, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create vma allocator" << std::endl;
-        }
-    }
-
-    ~Allocator() {
-        if (_handle != VK_NULL_HANDLE) {
-            vmaDestroyAllocator(_handle);
-        }
-    }
-
-    Allocator(const Allocator&) = delete;
-    Allocator& operator=(const Allocator&) = delete;
-
-    Allocator(Allocator&& other) noexcept
-        : _handle(other._handle)
-    {
-        other._handle = VK_NULL_HANDLE;
-    }
-
-    Allocator& operator=(Allocator&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vmaDestroyAllocator(_handle);
-            }
-            _handle = other._handle;
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VmaAllocator& handle() const { return _handle; }
-    
-private:
-    VmaAllocator _handle = VK_NULL_HANDLE;
 };
 
 }

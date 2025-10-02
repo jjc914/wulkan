@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <functional>
 
 #include <vulkan/vulkan_core.h>
 #ifdef __APPLE__
@@ -37,7 +38,7 @@ struct PhysicalDeviceSurfaceSupport {
     std::vector<VkPresentModeKHR> present_modes;
 };
 
-std::vector<const char*> GetDefaultRequiredDeviceExtensions();
+std::vector<const char*> GetRequiredDeviceExtensions();
 bool IsValidationLayersSupported();
 VKAPI_ATTR VkBool32 VKAPI_CALL DefaultDebugMessengerCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                              VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -56,16 +57,8 @@ VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKH
 VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceCapabilitiesKHR& capabilities);
 std::vector<uint8_t> ReadSpirvShader(const char* file_name);
 VkImageAspectFlags GetAspectFlags(VkFormat format);
-VkCommandBuffer BeginSingleTimeCommands(VkDevice device, VkCommandPool pool);
-void EndSingleTimeCommands(VkDevice device, VkCommandPool pool, VkQueue queue, VkCommandBuffer cmd);
-
-template<typename T>
-T AlignUp(T value, T alignment) {
-    static_assert(std::is_unsigned_v<T>,
-        "AlignUp requires an unsigned integral type");
-    return alignment == 0 ? value
-        : (value + alignment - 1) / alignment * alignment;
-}
+void ImmediateSubmit(VkDevice device, uint32_t queueFamilyIndex,
+    const std::function<void(VkDevice, VkCommandPool, VkCommandBuffer)>& record);
 
 }
 

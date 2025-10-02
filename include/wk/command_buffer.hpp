@@ -9,6 +9,60 @@
 
 namespace wk {
 
+class CommandBuffer {
+public:
+    CommandBuffer() = default;
+    CommandBuffer(VkDevice device, const VkCommandBufferAllocateInfo& ai)
+        : _device(device), _command_pool(ai.commandPool)
+    {
+        if (vkAllocateCommandBuffers(_device, &ai, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to allocate command buffer" << std::endl;
+        }
+    }
+
+    ~CommandBuffer() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkFreeCommandBuffers(_device, _command_pool, 1, &_handle);
+        }
+    }
+
+    CommandBuffer(const CommandBuffer&) = delete;
+    CommandBuffer& operator=(const CommandBuffer&) = delete;
+
+    CommandBuffer(CommandBuffer&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device),
+          _command_pool(other._command_pool)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+        other._command_pool = VK_NULL_HANDLE;
+    }
+
+    CommandBuffer& operator=(CommandBuffer&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDeviceWaitIdle(_device);
+                vkFreeCommandBuffers(_device, _command_pool, 1, &_handle);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            _command_pool = other._command_pool;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+            other._command_pool = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkCommandBuffer& handle() const { return _handle; }
+    
+private:
+    VkCommandBuffer _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+    VkCommandPool _command_pool = VK_NULL_HANDLE;
+};
+
 class BufferCopy {
 public:
     BufferCopy& set_src_offset(VkDeviceSize src_offset) {_src_offset = src_offset; return *this; }
@@ -104,7 +158,6 @@ private:
     uint32_t _clear_value_count = 0;
 };
 
-
 class CommandBufferAllocateInfo {
 public:
     CommandBufferAllocateInfo& set_command_pool(VkCommandPool command_pool) { _command_pool = command_pool; return *this; }
@@ -127,60 +180,6 @@ private:
     VkCommandPool _command_pool = VK_NULL_HANDLE;
     VkCommandBufferLevel _level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     uint32_t _command_buffer_count = 1;
-};
-    
-
-class CommandBuffer {
-public:
-    CommandBuffer() noexcept = default;
-    CommandBuffer(VkDevice device, const VkCommandBufferAllocateInfo& ai)
-        : _device(device), _command_pool(ai.commandPool)
-    {
-        if (vkAllocateCommandBuffers(_device, &ai, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to allocate command buffer" << std::endl;
-        }
-    }
-
-    ~CommandBuffer() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkFreeCommandBuffers(_device, _command_pool, 1, &_handle);
-        }
-    }
-
-    CommandBuffer(const CommandBuffer&) = delete;
-    CommandBuffer& operator=(const CommandBuffer&) = delete;
-
-    CommandBuffer(CommandBuffer&& other) noexcept
-        : _handle(other._handle),
-          _device(other._device),
-          _command_pool(other._command_pool)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-        other._command_pool = VK_NULL_HANDLE;
-    }
-
-    CommandBuffer& operator=(CommandBuffer&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkFreeCommandBuffers(_device, _command_pool, 1, &_handle);
-            }
-            _handle = other._handle;
-            _device = other._device;
-            _command_pool = other._command_pool;
-            other._handle = VK_NULL_HANDLE;
-            other._device = VK_NULL_HANDLE;
-            other._command_pool = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkCommandBuffer& handle() const { return _handle; }
-    
-private:
-    VkCommandBuffer _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
-    VkCommandPool _command_pool = VK_NULL_HANDLE;
 };
 
 }

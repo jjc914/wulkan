@@ -10,6 +10,59 @@
 
 namespace wk {
 
+class Buffer {
+public:
+    Buffer() = default;
+    Buffer(VmaAllocator allocator, const VkBufferCreateInfo& ci, const VmaAllocationCreateInfo& aci)
+        : _allocator(allocator)
+    {
+        if (vmaCreateBuffer(_allocator, &ci, &aci, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
+            std::cerr << "failed to create buffer" << std::endl;
+        }
+    }
+
+    ~Buffer() {
+        if (_handle != VK_NULL_HANDLE) {
+            vmaDestroyBuffer(_allocator, _handle, _allocation);
+        }
+    }
+
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
+
+    Buffer(Buffer&& other) noexcept
+        : _handle(other._handle),
+          _allocator(other._allocator),
+          _allocation(other._allocation)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._allocation = nullptr;
+    }
+
+    Buffer& operator=(Buffer&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vmaDestroyBuffer(_allocator, _handle, _allocation);
+            }
+            _handle = other._handle;
+            _allocator = other._allocator;
+            _allocation = other._allocation;
+
+            other._handle = VK_NULL_HANDLE;
+            other._allocation = nullptr;
+        }
+        return *this;
+    }
+
+    const VkBuffer& handle() const { return _handle; }
+    const VmaAllocation& allocation() const { return _allocation; }
+
+private:
+    VkBuffer _handle = VK_NULL_HANDLE;
+    VmaAllocator _allocator = VK_NULL_HANDLE;
+    VmaAllocation _allocation = nullptr;
+};
+
 class BufferDeviceAddressInfo {
 public:
     BufferDeviceAddressInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
@@ -61,57 +114,62 @@ private:
     const uint32_t* _p_queue_family_indices = nullptr;
 };
 
-class Buffer {
+class DeviceOrHostAddress {
 public:
-    Buffer() noexcept = default;
-    Buffer(VmaAllocator allocator, const VkBufferCreateInfo& ci, const VmaAllocationCreateInfo& aci)
-        : _allocator(allocator)
-    {
-        if (vmaCreateBuffer(_allocator, &ci, &aci, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
-            std::cerr << "failed to create buffer" << std::endl;
-        }
+    DeviceOrHostAddress& set_device_address(VkDeviceAddress addr) {
+        _use_device = true;
+        _device_address = addr;
+        return *this;
     }
-
-    ~Buffer() {
-        if (_handle != VK_NULL_HANDLE) {
-            vmaDestroyBuffer(_allocator, _handle, _allocation);
-        }
-    }
-
-    Buffer(const Buffer&) = delete;
-    Buffer& operator=(const Buffer&) = delete;
-
-    Buffer(Buffer&& other) noexcept
-        : _handle(other._handle),
-          _allocator(other._allocator),
-          _allocation(other._allocation)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._allocation = nullptr;
-    }
-
-    Buffer& operator=(Buffer&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vmaDestroyBuffer(_allocator, _handle, _allocation);
-            }
-            _handle = other._handle;
-            _allocator = other._allocator;
-            _allocation = other._allocation;
-
-            other._handle = VK_NULL_HANDLE;
-            other._allocation = nullptr;
-        }
+    DeviceOrHostAddress& set_host_address(void* ptr) {
+        _use_device = false;
+        _host_address = ptr;
         return *this;
     }
 
-    const VkBuffer& handle() const { return _handle; }
-    const VmaAllocation& allocation() const { return _allocation; }
+    VkDeviceOrHostAddressKHR to_vk() const {
+        VkDeviceOrHostAddressKHR addr{};
+        if (_use_device) {
+            addr.deviceAddress = _device_address;
+        } else {
+            addr.hostAddress = _host_address;
+        }
+        return addr;
+    }
 
 private:
-    VkBuffer _handle = VK_NULL_HANDLE;
-    VmaAllocator _allocator = VK_NULL_HANDLE;
-    VmaAllocation _allocation = nullptr;
+    bool _use_device = true;
+    VkDeviceAddress _device_address = 0;
+    void* _host_address = nullptr;
+};
+
+class DeviceOrHostAddressConst {
+public:
+    DeviceOrHostAddressConst& set_device_address(VkDeviceAddress addr) {
+        _use_device = true;
+        _device_address = addr;
+        return *this;
+    }
+    DeviceOrHostAddressConst& set_host_address(const void* ptr) {
+        _use_device = false;
+        _host_address = ptr;
+        return *this;
+    }
+
+    VkDeviceOrHostAddressConstKHR to_vk() const {
+        VkDeviceOrHostAddressConstKHR addr{};
+        if (_use_device) {
+            addr.deviceAddress = _device_address;
+        } else {
+            addr.hostAddress = _host_address;
+        }
+        return addr;
+    }
+
+private:
+    bool _use_device = true;
+    VkDeviceAddress _device_address = 0;
+    const void* _host_address = nullptr;
 };
 
 }

@@ -1,10 +1,12 @@
 #include "../include/wk/wulkan_internal.hpp"
 
+#include "../include/wk/queue.hpp"
+
 #include <functional>
 
 namespace wk {
 
-std::vector<const char*> GetDefaultRequiredDeviceExtensions() {
+std::vector<const char*> GetRequiredDeviceExtensions() {
     std::vector<const char*> device_extensions;
 #ifdef __APPLE__
     device_extensions.emplace_back("VK_KHR_portability_subset");
@@ -13,6 +15,7 @@ std::vector<const char*> GetDefaultRequiredDeviceExtensions() {
     device_extensions.emplace_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
     device_extensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
     device_extensions.emplace_back(VK_KHR_BIND_MEMORY_2_EXTENSION_NAME);
+
     return device_extensions;
 }
 
@@ -266,6 +269,7 @@ std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
 
     size_t file_size = static_cast<size_t>(file.tellg());
     std::vector<uint8_t> buffer(file_size);
+
     file.seekg(0);
     file.read(reinterpret_cast<char*>(buffer.data()), file_size);
     file.close();
@@ -293,36 +297,51 @@ VkImageAspectFlags GetAspectFlags(VkFormat format) {
     }
 }
 
-VkCommandBuffer BeginSingleTimeCommands(VkDevice device, VkCommandPool pool) {
-    VkCommandBufferAllocateInfo alloc{};
-    alloc.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    alloc.commandPool = pool;
-    alloc.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    alloc.commandBufferCount = 1;
+void ImmediateSubmit(VkDevice device, uint32_t queueFamilyIndex,
+        const std::function<void(VkDevice, VkCommandPool, VkCommandBuffer)>& record) {
+    VkQueue graphics_queue = wk::Queue(device, queueFamilyIndex).handle();
+
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    poolInfo.queueFamilyIndex = queueFamilyIndex;
+
+    VkCommandPool pool;
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &pool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create transient command pool");
+    }
+
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = pool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer cmd;
-    vkAllocateCommandBuffers(device, &alloc, &cmd);
+    if (vkAllocateCommandBuffers(device, &allocInfo, &cmd) != VK_SUCCESS) {
+        vkDestroyCommandPool(device, pool, nullptr);
+        throw std::runtime_error("failed to allocate transient command buffer");
+    }
 
-    VkCommandBufferBeginInfo begin{};
-    begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(cmd, &begin);
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(cmd, &beginInfo);
 
-    return cmd;
-}
+    record(device, pool, cmd);
 
-void EndSingleTimeCommands(VkDevice device, VkCommandPool pool, VkQueue queue, VkCommandBuffer cmd) {
     vkEndCommandBuffer(cmd);
 
-    VkSubmitInfo submit{};
-    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit.commandBufferCount = 1;
-    submit.pCommandBuffers = &cmd;
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &cmd;
 
-    vkQueueSubmit(queue, 1, &submit, VK_NULL_HANDLE);
-    vkQueueWaitIdle(queue);
+    vkQueueSubmit(graphics_queue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphics_queue);
 
     vkFreeCommandBuffers(device, pool, 1, &cmd);
+    vkDestroyCommandPool(device, pool, nullptr);
 }
 
-}
+} // wk

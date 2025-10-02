@@ -5,6 +5,48 @@
 
 namespace wk {
 
+class Sampler {
+public:
+    Sampler() = default;
+    Sampler(VkDevice device, const VkSamplerCreateInfo& ci) 
+        : _device(device) 
+    {
+        if (vkCreateSampler(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create sampler" << std::endl;
+        }
+    }
+
+    ~Sampler() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroySampler(_device, _handle, nullptr);
+        }
+    }
+
+    Sampler(const Sampler&) = delete;
+    Sampler& operator=(const Sampler&) = delete;
+
+    Sampler(Sampler&& other) noexcept : _device(other._device), _handle(other._handle) {
+        other._handle = VK_NULL_HANDLE;
+    }
+    Sampler& operator=(Sampler&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroySampler(_device, _handle, nullptr);
+            }
+            _device = other._device;
+            _handle = other._handle;
+            other._handle = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkSampler& handle() const { return _handle; }
+
+private:
+    VkDevice _device = VK_NULL_HANDLE;
+    VkSampler _handle = VK_NULL_HANDLE;
+};
+
 class SamplerCreateInfo {
 public:
     SamplerCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
@@ -66,48 +108,6 @@ private:
     float _max_lod = 0.0f;
     VkBorderColor _border_color = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     VkBool32 _unnormalized_coordinates = VK_FALSE;
-};
-
-class Sampler {
-public:
-    Sampler() noexcept = default;
-    Sampler(VkDevice device, const VkSamplerCreateInfo& ci) 
-        : _device(device) 
-    {
-        if (vkCreateSampler(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create sampler" << std::endl;
-        }
-    }
-
-    ~Sampler() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroySampler(_device, _handle, nullptr);
-        }
-    }
-
-    Sampler(const Sampler&) = delete;
-    Sampler& operator=(const Sampler&) = delete;
-
-    Sampler(Sampler&& other) noexcept : _device(other._device), _handle(other._handle) {
-        other._handle = VK_NULL_HANDLE;
-    }
-    Sampler& operator=(Sampler&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroySampler(_device, _handle, nullptr);
-            }
-            _device = other._device;
-            _handle = other._handle;
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkSampler& handle() const { return _handle; }
-
-private:
-    VkDevice _device = VK_NULL_HANDLE;
-    VkSampler _handle = VK_NULL_HANDLE;
 };
 
 } // namespace wk

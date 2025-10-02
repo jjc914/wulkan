@@ -9,6 +9,59 @@
 
 namespace wk {
 
+class Image {
+public:
+    Image() = default;
+    Image(VmaAllocator allocator, const VkImageCreateInfo& create_info, const VmaAllocationCreateInfo& alloc_info)
+        : _allocator(allocator)
+    {
+        if (vmaCreateImage(allocator, &create_info, &alloc_info, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
+            std::cerr << "failed to create image!" << std::endl;
+        }
+    }
+
+    ~Image() {
+        if (_handle != VK_NULL_HANDLE) {
+            vmaDestroyImage(_allocator, _handle, _allocation);
+        }
+    }
+
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+
+    Image(Image&& other) noexcept
+        : _allocator(other._allocator),
+          _handle(other._handle),
+          _allocation(other._allocation)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._allocation = VK_NULL_HANDLE;
+    }
+
+    Image& operator=(Image&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vmaDestroyImage(_allocator, _handle, _allocation);
+            }
+            _allocator = other._allocator;
+            _handle = other._handle;
+            _allocation = other._allocation;
+
+            other._handle = VK_NULL_HANDLE;
+            other._allocation = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkImage& handle() const { return _handle; }
+    const VmaAllocation& allocation() const { return _allocation; }
+
+private:
+    VmaAllocator _allocator = VK_NULL_HANDLE;
+    VkImage _handle = VK_NULL_HANDLE;
+    VmaAllocation _allocation = VK_NULL_HANDLE;
+};
+
 class Extent {
 public:
     Extent(VkExtent2D e) {
@@ -94,59 +147,6 @@ private:
     uint32_t _queue_family_index_count = 0;
     const uint32_t* _p_queue_family_indices = nullptr;
     VkImageLayout _initial_layout = VK_IMAGE_LAYOUT_UNDEFINED;
-};
-
-class Image {
-public:
-    Image() noexcept = default;
-    Image(VmaAllocator allocator, const VkImageCreateInfo& create_info, const VmaAllocationCreateInfo& alloc_info)
-        : _allocator(allocator)
-    {
-        if (vmaCreateImage(allocator, &create_info, &alloc_info, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
-            std::cerr << "failed to create image!" << std::endl;
-        }
-    }
-
-    ~Image() {
-        if (_handle != VK_NULL_HANDLE) {
-            vmaDestroyImage(_allocator, _handle, _allocation);
-        }
-    }
-
-    Image(const Image&) = delete;
-    Image& operator=(const Image&) = delete;
-
-    Image(Image&& other) noexcept
-        : _allocator(other._allocator),
-          _handle(other._handle),
-          _allocation(other._allocation)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._allocation = VK_NULL_HANDLE;
-    }
-
-    Image& operator=(Image&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vmaDestroyImage(_allocator, _handle, _allocation);
-            }
-            _allocator = other._allocator;
-            _handle = other._handle;
-            _allocation = other._allocation;
-
-            other._handle = VK_NULL_HANDLE;
-            other._allocation = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkImage& handle() const { return _handle; }
-    const VmaAllocation& allocation() const { return _allocation; }
-
-private:
-    VmaAllocator _allocator = VK_NULL_HANDLE;
-    VkImage _handle = VK_NULL_HANDLE;
-    VmaAllocation _allocation = VK_NULL_HANDLE;
 };
 
 }

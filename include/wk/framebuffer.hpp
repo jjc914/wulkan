@@ -9,47 +9,9 @@
 
 namespace wk {
 
-class FramebufferCreateInfo {
-public:
-    FramebufferCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
-    FramebufferCreateInfo& set_flags(VkFramebufferCreateFlags flags) { _flags = flags; return *this; }
-    FramebufferCreateInfo& set_render_pass(VkRenderPass render_pass) { _render_pass = render_pass; return *this; }
-    FramebufferCreateInfo& set_attachments(uint32_t attachment_count, const VkImageView* p_attachments) {
-        _attachment_count = attachment_count;
-        _p_attachments = p_attachments;
-        return *this;
-    }
-    FramebufferCreateInfo& set_extent(VkExtent2D extent) { _extent = extent; return *this; }
-    FramebufferCreateInfo& set_layers(uint32_t layers) { _layers = layers; return *this; }
-
-    VkFramebufferCreateInfo to_vk() const {
-        VkFramebufferCreateInfo ci{};
-        ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        ci.pNext = _p_next;
-        ci.flags = _flags;
-        ci.renderPass = _render_pass;
-        ci.attachmentCount = _attachment_count;
-        ci.pAttachments = _p_attachments;
-        ci.width = _extent.width;
-        ci.height = _extent.height;
-        ci.layers = _layers;
-        return ci;
-    }
-
-private:
-    const void* _p_next = nullptr;
-    VkFramebufferCreateFlags _flags = 0;
-    VkRenderPass _render_pass = VK_NULL_HANDLE;
-    uint32_t _attachment_count = 0;
-    const VkImageView* _p_attachments = nullptr;
-    VkExtent2D _extent{};
-    uint32_t _layers = 1;
-};
-        
-
 class Framebuffer {
 public:
-    Framebuffer() noexcept = default;
+    Framebuffer() = default;
     Framebuffer(VkDevice device, const VkFramebufferCreateInfo& create_info)
         : _device(device)
     {
@@ -92,6 +54,43 @@ public:
 private:
     VkFramebuffer _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
+};
+
+class FramebufferCreateInfo {
+public:
+    FramebufferCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    FramebufferCreateInfo& set_flags(VkFramebufferCreateFlags flags) { _flags = flags; return *this; }
+    FramebufferCreateInfo& set_render_pass(VkRenderPass render_pass) { _render_pass = render_pass; return *this; }
+    FramebufferCreateInfo& set_attachments(uint32_t attachment_count, const VkImageView* p_attachments) {
+        _attachment_count = attachment_count;
+        _p_attachments = p_attachments;
+        return *this;
+    }
+    FramebufferCreateInfo& set_extent(VkExtent2D extent) { _extent = extent; return *this; }
+    FramebufferCreateInfo& set_layers(uint32_t layers) { _layers = layers; return *this; }
+
+    VkFramebufferCreateInfo to_vk() const {
+        VkFramebufferCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.renderPass = _render_pass;
+        ci.attachmentCount = _attachment_count;
+        ci.pAttachments = _p_attachments;
+        ci.width = _extent.width;
+        ci.height = _extent.height;
+        ci.layers = _layers;
+        return ci;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    VkFramebufferCreateFlags _flags = 0;
+    VkRenderPass _render_pass = VK_NULL_HANDLE;
+    uint32_t _attachment_count = 0;
+    const VkImageView* _p_attachments = nullptr;
+    VkExtent2D _extent{};
+    uint32_t _layers = 1;
 };
 
 }

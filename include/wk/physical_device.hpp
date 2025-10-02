@@ -12,31 +12,9 @@
 
 namespace wk {
 
-class PhysicalDeviceFeatures2 {
-public:
-    PhysicalDeviceFeatures2& set_features(const VkPhysicalDeviceFeatures* features) { _features = features; return *this; }
-    PhysicalDeviceFeatures2& set_p_next(void* p_next) { _p_next = p_next; return *this; }
-
-    VkPhysicalDeviceFeatures2 to_vk() const {
-        VkPhysicalDeviceFeatures2 vk{};
-        vk.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        vk.pNext = _p_next;
-        if (_features) {
-            vk.features = *_features;
-        } else {
-            vk.features = VkPhysicalDeviceFeatures{};
-        }
-        return vk;
-    }
-
-private:
-    void* _p_next   = nullptr;
-    const VkPhysicalDeviceFeatures* _features = nullptr;
-};
-
 class PhysicalDevice {
 public:
-    PhysicalDevice() noexcept = default;
+    PhysicalDevice() = default;
     PhysicalDevice(VkInstance instance, VkSurfaceKHR surface, 
             const std::vector<const char*>& extensions, VkPhysicalDeviceFeatures2* feature_chain, 
             PhysicalDeviceFeatureScorer scorer = DefaultPhysicalDeviceFeatureScorer)
@@ -86,6 +64,46 @@ private:
     DeviceQueueFamilyIndices _queue_family_indices{};
 
     std::vector<const char*> _extensions{};
+};
+
+class PhysicalDeviceFeatures2 {
+public:
+    PhysicalDeviceFeatures2& set_features(const VkPhysicalDeviceFeatures* features) { _features = features; return *this; }
+    PhysicalDeviceFeatures2& set_p_next(void* p_next) { _p_next = p_next; return *this; }
+
+    VkPhysicalDeviceFeatures2 to_vk() const {
+        VkPhysicalDeviceFeatures2 vk{};
+        vk.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        vk.pNext = _p_next;
+        if (_features) {
+            vk.features = *_features;
+        } else {
+            vk.features = VkPhysicalDeviceFeatures{};
+        }
+        return vk;
+    }
+
+private:
+    void* _p_next   = nullptr;
+    const VkPhysicalDeviceFeatures* _features = nullptr;
+};
+
+class PhysicalDeviceProperties2 {
+public:
+    PhysicalDeviceProperties2& set_p_next(void* p_next) {
+        _p_next = p_next;
+        return *this;
+    }
+
+    VkPhysicalDeviceProperties2 to_vk() const {
+        VkPhysicalDeviceProperties2 vk{};
+        vk.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        vk.pNext = _p_next;
+        return vk;
+    }
+
+private:
+    void* _p_next   = nullptr;
 };
 
 }

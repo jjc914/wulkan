@@ -9,38 +9,9 @@
 
 namespace wk {
 
-class DebugMessengerCreateInfo {
-public:
-    DebugMessengerCreateInfo& set_p_next(void* p_next) { _p_next = p_next; return *this; }
-    DebugMessengerCreateInfo& set_flags(VkDebugUtilsMessengerCreateFlagsEXT flags) { _flags = flags; return *this; }
-    DebugMessengerCreateInfo& set_message_severity(VkDebugUtilsMessageSeverityFlagsEXT severity) { _message_severity = severity; return *this; }
-    DebugMessengerCreateInfo& set_message_type(VkDebugUtilsMessageTypeFlagsEXT type) { _message_type = type; return *this; }
-    DebugMessengerCreateInfo& set_user_callback(PFN_vkDebugUtilsMessengerCallbackEXT callback) { _user_callback = callback; return *this; }
-    DebugMessengerCreateInfo& set_user_data(void* user_data) { _user_data = user_data; return *this; }
-
-    VkDebugUtilsMessengerCreateInfoEXT to_vk() const {
-        VkDebugUtilsMessengerCreateInfoEXT ci{};
-        ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        ci.pNext = _p_next;
-        ci.flags = _flags;
-        ci.messageSeverity = _message_severity;
-        ci.messageType = _message_type;
-        ci.pfnUserCallback = _user_callback;
-        ci.pUserData = _user_data;
-        return ci;
-    }
-private:
-    void* _p_next = nullptr;
-    VkDebugUtilsMessengerCreateFlagsEXT _flags = 0;
-    VkDebugUtilsMessageSeverityFlagsEXT _message_severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    VkDebugUtilsMessageTypeFlagsEXT _message_type = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    PFN_vkDebugUtilsMessengerCallbackEXT _user_callback = nullptr;
-    void* _user_data = nullptr;
-};
-
 class DebugMessenger {
 public:
-    DebugMessenger() noexcept = default;
+    DebugMessenger() = default;
     DebugMessenger(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT ci)
         : _instance(instance) 
     {
@@ -107,6 +78,74 @@ private:
     PFN_vkDestroyDebugUtilsMessengerEXT _vkDestroyDebugUtilsMessengerEXT = nullptr;
 
     VkInstance _instance = VK_NULL_HANDLE;
+};
+
+class DebugMessengerCreateInfo {
+public:
+    DebugMessengerCreateInfo& set_p_next(void* p_next) { _p_next = p_next; return *this; }
+    DebugMessengerCreateInfo& set_flags(VkDebugUtilsMessengerCreateFlagsEXT flags) { _flags = flags; return *this; }
+    DebugMessengerCreateInfo& set_message_severity(VkDebugUtilsMessageSeverityFlagsEXT severity) { _message_severity = severity; return *this; }
+    DebugMessengerCreateInfo& set_message_type(VkDebugUtilsMessageTypeFlagsEXT type) { _message_type = type; return *this; }
+    DebugMessengerCreateInfo& set_user_callback(PFN_vkDebugUtilsMessengerCallbackEXT callback) { _user_callback = callback; return *this; }
+    DebugMessengerCreateInfo& set_user_data(void* user_data) { _user_data = user_data; return *this; }
+
+    VkDebugUtilsMessengerCreateInfoEXT to_vk() const {
+        VkDebugUtilsMessengerCreateInfoEXT ci{};
+        ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.messageSeverity = _message_severity;
+        ci.messageType = _message_type;
+        ci.pfnUserCallback = _user_callback;
+        ci.pUserData = _user_data;
+        return ci;
+    }
+private:
+    void* _p_next = nullptr;
+    VkDebugUtilsMessengerCreateFlagsEXT _flags = 0;
+    VkDebugUtilsMessageSeverityFlagsEXT _message_severity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    VkDebugUtilsMessageTypeFlagsEXT _message_type = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    PFN_vkDebugUtilsMessengerCallbackEXT _user_callback = nullptr;
+    void* _user_data = nullptr;
+};
+
+class ValidationFeatures {
+public:
+    ValidationFeatures& set_enabled_features(uint32_t count, const VkValidationFeatureEnableEXT* features) {
+        _enabled_count = count;
+        _p_enabled = features;
+        return *this;
+    }
+    ValidationFeatures& set_disabled_features(uint32_t count, const VkValidationFeatureDisableEXT* features) {
+        _disabled_count = count;
+        _p_disabled = features;
+        return *this;
+    }
+    ValidationFeatures& set_p_next(const void* p_next) {
+        _p_next = p_next;
+        return *this;
+    }
+
+    VkValidationFeaturesEXT to_vk() const {
+        VkValidationFeaturesEXT vf{};
+        vf.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+        vf.pNext = _p_next;
+
+        vf.enabledValidationFeatureCount = _enabled_count;
+        vf.pEnabledValidationFeatures = _p_enabled;
+
+        vf.disabledValidationFeatureCount = _disabled_count;
+        vf.pDisabledValidationFeatures = _p_disabled;
+
+        return vf;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    uint32_t _enabled_count = 0;
+    const VkValidationFeatureEnableEXT* _p_enabled = nullptr;
+    uint32_t _disabled_count = 0;
+    const VkValidationFeatureDisableEXT* _p_disabled = nullptr;
 };
 
 }

@@ -10,6 +10,45 @@
 
 namespace wk {
 
+class Instance {
+public:
+    Instance() = default;
+    Instance(const VkInstanceCreateInfo& ci) {
+        if (vkCreateInstance(&ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create vulkan instance" << std::endl;
+        }
+    }
+
+    ~Instance() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyInstance(_handle, nullptr);
+        }
+    }
+
+    Instance(const Instance&) = delete;
+    Instance& operator=(const Instance&) = delete;
+
+    Instance(Instance&& other) noexcept
+            : _handle(other._handle) {
+        other._handle = VK_NULL_HANDLE;
+    }
+
+    Instance& operator=(Instance&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyInstance(_handle, nullptr);
+            }
+            _handle = other._handle;
+            other._handle = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkInstance& handle() const { return _handle; }
+private:
+    VkInstance _handle = VK_NULL_HANDLE;
+};
+
 class ApplicationInfo {
 public:
     ApplicationInfo& set_p_next(void* p_next) { _p_next = p_next; return *this; }
@@ -79,46 +118,6 @@ private:
     const char* const* _pp_extensions = nullptr;
     uint32_t _layer_count = 0;
     const char* const* _pp_layers = nullptr;
-};
-    
-
-class Instance {
-public:
-    Instance() noexcept = default;
-    Instance(const VkInstanceCreateInfo& ci) {
-        if (vkCreateInstance(&ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create vulkan instance" << std::endl;
-        }
-    }
-
-    ~Instance() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyInstance(_handle, nullptr);
-        }
-    }
-
-    Instance(const Instance&) = delete;
-    Instance& operator=(const Instance&) = delete;
-
-    Instance(Instance&& other) noexcept
-            : _handle(other._handle) {
-        other._handle = VK_NULL_HANDLE;
-    }
-
-    Instance& operator=(Instance&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyInstance(_handle, nullptr);
-            }
-            _handle = other._handle;
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkInstance& handle() const { return _handle; }
-private:
-    VkInstance _handle = VK_NULL_HANDLE;
 };
 
 }

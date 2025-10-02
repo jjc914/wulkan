@@ -9,6 +9,53 @@
 
 namespace wk {
 
+class Pipeline {
+public:
+    Pipeline() = default;
+    Pipeline(VkDevice device, const VkGraphicsPipelineCreateInfo& ci)
+        : _device(device) 
+    {
+        if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create graphics pipeline" << std::endl;
+        }
+    }
+
+    ~Pipeline() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyPipeline(_device, _handle, nullptr);
+        }
+    }
+
+    Pipeline(const Pipeline&) = delete;
+    Pipeline& operator=(const Pipeline&) = delete;
+
+    Pipeline(Pipeline&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    Pipeline& operator=(Pipeline&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyPipeline(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkPipeline& handle() const { return _handle; }
+private:
+    VkPipeline _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+};
+
 class Viewport {
 public:
     Viewport& set_x(float x) { _x = x; return *this; }
@@ -105,14 +152,13 @@ private:
     VkVertexInputRate _input_rate = VK_VERTEX_INPUT_RATE_VERTEX;
 };    
 
-
 class VertexBindingDescription {
 public:
     VertexBindingDescription& set_binding(uint32_t binding) { _binding = binding; return *this; }
     VertexBindingDescription& set_stride(uint32_t stride) { _stride = stride; return *this; }
     VertexBindingDescription& set_input_rate(VkVertexInputRate input_rate) { _input_rate = input_rate; return *this; }
 
-    VkVertexInputBindingDescription to_vk_vertex_input_binding_description() {
+    VkVertexInputBindingDescription to_vk() {
         VkVertexInputBindingDescription vkbd{};
         vkbd.binding = _binding;
         vkbd.stride = _stride;
@@ -537,57 +583,6 @@ private:
     uint32_t _subpass = 0;
     VkPipeline _base_pipeline_handle = VK_NULL_HANDLE;
     int32_t _base_pipeline_index = -1;
-};
-    
-
-class Pipeline {
-public:
-    Pipeline() noexcept = default;
-    Pipeline(VkDevice device, const VkGraphicsPipelineCreateInfo& ci)
-        : _device(device) 
-    {
-        if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create graphics pipeline" << std::endl;
-        }
-    }
-
-    ~Pipeline() {
-        Destroy();
-    }
-
-    Pipeline(const Pipeline&) = delete;
-    Pipeline& operator=(const Pipeline&) = delete;
-
-    Pipeline(Pipeline&& other) noexcept
-        : _handle(other._handle),
-          _device(other._device)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-    }
-
-    Pipeline& operator=(Pipeline&& other) noexcept {
-        if (this != &other) {
-            Destroy();
-            _handle = other._handle;
-            _device = other._device;
-            other._handle = VK_NULL_HANDLE;
-            other._device = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkPipeline& handle() const { return _handle; }
-private:
-    void Destroy() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyPipeline(_device, _handle, nullptr);
-            _handle = VK_NULL_HANDLE;
-        }
-    }
-
-    VkPipeline _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

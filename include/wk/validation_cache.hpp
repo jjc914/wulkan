@@ -5,6 +5,51 @@
 
 namespace wk {
 
+class ValidationCache {
+public:
+    ValidationCache() = default;
+    ValidationCache(VkDevice device, const VkValidationCacheCreateInfoEXT& ci) 
+        : _device(device) 
+    {
+        if (vkCreateValidationCacheEXT(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create validation cache" << std::endl;
+        }
+    }
+
+    ~ValidationCache() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyValidationCacheEXT(_device, _handle, nullptr);
+            _handle = VK_NULL_HANDLE;
+            _device = VK_NULL_HANDLE;
+        }
+    }
+
+    ValidationCache(const ValidationCache&) = delete;
+    ValidationCache& operator=(const ValidationCache&) = delete;
+
+    ValidationCache(ValidationCache&& other) noexcept : _device(other._device), _handle(other._handle) {
+        other._handle = VK_NULL_HANDLE;
+    }
+    ValidationCache& operator=(ValidationCache&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyValidationCacheEXT(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkValidationCacheEXT& handle() const { return _handle; }
+
+private:
+    VkValidationCacheEXT _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+};
+
 class ValidationCacheCreateInfo {
 public:
     ValidationCacheCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
@@ -27,48 +72,6 @@ private:
     VkValidationCacheCreateFlagsEXT _flags = 0;
     size_t _initial_data_size = 0;
     const void* _p_initial_data = nullptr;
-};
-
-class ValidationCache {
-public:
-    ValidationCache() noexcept = default;
-    ValidationCache(VkDevice device, const VkValidationCacheCreateInfoEXT& ci) 
-        : _device(device) 
-    {
-        if (vkCreateValidationCacheEXT(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create validation cache" << std::endl;
-        }
-    }
-
-    ~ValidationCache() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyValidationCacheEXT(_device, _handle, nullptr);
-        }
-    }
-
-    ValidationCache(const ValidationCache&) = delete;
-    ValidationCache& operator=(const ValidationCache&) = delete;
-
-    ValidationCache(ValidationCache&& other) noexcept : _device(other._device), _handle(other._handle) {
-        other._handle = VK_NULL_HANDLE;
-    }
-    ValidationCache& operator=(ValidationCache&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyValidationCacheEXT(_device, _handle, nullptr);
-            }
-            _device = other._device;
-            _handle = other._handle;
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkValidationCacheEXT& handle() const { return _handle; }
-
-private:
-    VkDevice _device = VK_NULL_HANDLE;
-    VkValidationCacheEXT _handle = VK_NULL_HANDLE;
 };
 
 } // namespace wk

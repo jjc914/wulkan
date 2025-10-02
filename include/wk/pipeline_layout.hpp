@@ -9,6 +9,51 @@
 
 namespace wk {
 
+class PipelineLayout {
+public:
+    PipelineLayout() = default;
+    PipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo& ci)
+        : _device(device)
+    {
+        if (vkCreatePipelineLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create pipeline layout" << std::endl;
+        }
+    }
+
+    ~PipelineLayout() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyPipelineLayout(_device, _handle, nullptr);
+        }
+    }
+
+    PipelineLayout(const PipelineLayout&) = delete;
+    PipelineLayout& operator=(const PipelineLayout&) = delete;
+
+    PipelineLayout(PipelineLayout&& other) noexcept
+        : _handle(other._handle), _device(other._device) {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    PipelineLayout& operator=(PipelineLayout&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyPipelineLayout(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkPipelineLayout& handle() const { return _handle; }
+private:
+    VkPipelineLayout _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+};
+
 class PushConstantRange {
 public:
     PushConstantRange& set_stage_flags(VkShaderStageFlags flags) { _stage_flags = flags; return *this; }
@@ -62,51 +107,6 @@ private:
     const VkDescriptorSetLayout* _p_set_layouts = nullptr;
     uint32_t _push_constant_range_count = 0;
     const VkPushConstantRange* _p_push_constant_ranges = nullptr;
-};    
-
-class PipelineLayout {
-public:
-    PipelineLayout() noexcept = default;
-    PipelineLayout(VkDevice device, const VkPipelineLayoutCreateInfo& ci)
-        : _device(device)
-    {
-        if (vkCreatePipelineLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create pipeline layout" << std::endl;
-        }
-    }
-
-    ~PipelineLayout() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyPipelineLayout(_device, _handle, nullptr);
-        }
-    }
-
-    PipelineLayout(const PipelineLayout&) = delete;
-    PipelineLayout& operator=(const PipelineLayout&) = delete;
-
-    PipelineLayout(PipelineLayout&& other) noexcept
-        : _handle(other._handle), _device(other._device) {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-    }
-
-    PipelineLayout& operator=(PipelineLayout&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyPipelineLayout(_device, _handle, nullptr);
-            }
-            _handle = other._handle;
-            _device = other._device;
-            other._handle = VK_NULL_HANDLE;
-            other._device = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkPipelineLayout& handle() const { return _handle; }
-private:
-    VkPipelineLayout _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

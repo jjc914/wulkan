@@ -9,6 +9,52 @@
 
 namespace wk {
 
+class RenderPass {
+public:
+    RenderPass() = default;
+    RenderPass(VkDevice device, const VkRenderPassCreateInfo& create_info)
+        : _device(device)
+    {
+        if (vkCreateRenderPass(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create render pass" << std::endl;
+        }
+    }
+
+    ~RenderPass() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyRenderPass(_device, _handle, nullptr);
+        }
+    }
+
+    RenderPass(const RenderPass&) = delete;
+    RenderPass& operator=(const RenderPass&) = delete;
+
+    RenderPass(RenderPass&& other) noexcept
+        : _handle(other._handle),
+          _device(other._device)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    RenderPass& operator=(RenderPass&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyRenderPass(_device, _handle, nullptr);
+            }
+            _handle = other._handle;
+            _device = other._device;
+            other._handle = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkRenderPass& handle() const { return _handle; }
+private:
+    VkRenderPass _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+};
+
 class AttachmentDescription {
 public:
     AttachmentDescription& set_flags(VkAttachmentDescriptionFlags flags) { _flags = flags; return *this; }
@@ -193,52 +239,6 @@ private:
     const VkSubpassDescription* _p_subpasses = nullptr;
     uint32_t _dependency_count = 0;
     const VkSubpassDependency* _p_dependencies = nullptr;
-};
-
-class RenderPass {
-public:
-    RenderPass() noexcept = default;
-    RenderPass(VkDevice device, const VkRenderPassCreateInfo& create_info)
-        : _device(device)
-    {
-        if (vkCreateRenderPass(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create render pass" << std::endl;
-        }
-    }
-
-    ~RenderPass() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyRenderPass(_device, _handle, nullptr);
-        }
-    }
-
-    RenderPass(const RenderPass&) = delete;
-    RenderPass& operator=(const RenderPass&) = delete;
-
-    RenderPass(RenderPass&& other) noexcept
-        : _handle(other._handle),
-          _device(other._device)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-    }
-
-    RenderPass& operator=(RenderPass&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyRenderPass(_device, _handle, nullptr);
-            }
-            _handle = other._handle;
-            _device = other._device;
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkRenderPass& handle() const { return _handle; }
-private:
-    VkRenderPass _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

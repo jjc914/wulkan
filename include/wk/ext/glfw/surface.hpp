@@ -40,7 +40,7 @@ public:
 
     Surface& operator=(Surface&& other) noexcept {
         if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
+            if (_instance != VK_NULL_HANDLE && _handle != VK_NULL_HANDLE) {
                 vkDestroySurfaceKHR(_instance, _handle, nullptr);
             }
 

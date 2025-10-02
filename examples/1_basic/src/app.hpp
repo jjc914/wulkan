@@ -1,16 +1,14 @@
-#ifndef APP_HPP
-#define APP_HPP
+#ifndef BASIC_1_APP_HPP
+#define BASIC_1_APP_HPP
 
 #define WLK_ENABLE_VALIDATION_LAYERS
 #include <wk/wulkan.hpp>
 #include <wk/ext/glfw/glfw_internal.hpp>
 #include <wk/ext/glfw/surface.hpp>
+
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/transform.hpp>
 
-#include <iostream>
 #include <algorithm>
 #include <cstring>
 
@@ -37,13 +35,14 @@ public:
     int run();
 
 private:
-    int init_window();
-    int init_vulkan();
-    int main_loop();
-    void rebuild_swapchain();
-    void cleanup();
+    int _init_window();
+    int _init_vulkan();
+    int _init_geometry();
+    int _main_loop();
+    void _rebuild_swapchain();
+    void _cleanup();
 
-    // ---------- Geometry ----------
+    // ---------- geometry ----------
     const std::vector<Vertex> _VERTICES = {
         {{-1.0f, -1.0f,  1.0f} /*xyz*/, {1, 0, 0} /*rgb*/}, // front
         {{ 1.0f, -1.0f,  1.0f},         {0, 1, 0}},
@@ -64,7 +63,7 @@ private:
         4, 5, 1, 1, 0, 4, // bottom
     };
 
-    // ---------- Renderer constants ----------
+    // ---------- renderer constants ----------
     const size_t _MAX_FRAMES_IN_FLIGHT = 2;
     int _WIDTH = 900;
     int _HEIGHT = 600;
@@ -76,6 +75,7 @@ private:
     };
 
     GLFWwindow* _window;
+
     wk::Instance _instance;
     wk::DebugMessenger _debug_messenger;
     wk::ext::glfw::Surface _surface;
@@ -88,6 +88,7 @@ private:
     wk::RenderPass _render_pass;
 
     wk::Swapchain _swapchain;
+
     std::vector<wk::Image> _depth_images;
     std::vector<wk::ImageView> _depth_image_views;
     std::vector<wk::Framebuffer> _framebuffers;
@@ -108,4 +109,4 @@ private:
     std::vector<wk::Fence> _frame_in_flight_fences{};
 };
 
-#endif
+#endif // BASIC_1_APP_HPP

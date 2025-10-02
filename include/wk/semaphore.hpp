@@ -9,28 +9,9 @@
 
 namespace wk {
 
-class SemaphoreCreateInfo {
-public:
-    SemaphoreCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
-    SemaphoreCreateInfo& set_flags(VkSemaphoreCreateFlags flags) { _flags = flags; return *this; }
-
-    VkSemaphoreCreateInfo to_vk() const {
-        VkSemaphoreCreateInfo ci{};
-        ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        ci.pNext = _p_next;
-        ci.flags = _flags;
-        return ci;
-    }
-
-private:
-    const void* _p_next = nullptr;
-    VkSemaphoreCreateFlags _flags = 0;
-};
-        
-
 class Semaphore {
 public:
-    Semaphore() noexcept = default;
+    Semaphore() = default;
     Semaphore(VkDevice device, const VkSemaphoreCreateInfo& create_info)
         : _device(device)
     {
@@ -43,6 +24,8 @@ public:
         if (_handle != VK_NULL_HANDLE) {
             vkDestroySemaphore(_device, _handle, nullptr);
         }
+        _handle = VK_NULL_HANDLE;
+        _device = VK_NULL_HANDLE;
     }
 
     Semaphore(const Semaphore&) = delete;
@@ -73,6 +56,24 @@ public:
 private:
     VkSemaphore _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
+};
+
+class SemaphoreCreateInfo {
+public:
+    SemaphoreCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    SemaphoreCreateInfo& set_flags(VkSemaphoreCreateFlags flags) { _flags = flags; return *this; }
+
+    VkSemaphoreCreateInfo to_vk() const {
+        VkSemaphoreCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        return ci;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    VkSemaphoreCreateFlags _flags = 0;
 };
 
 }

@@ -9,31 +9,9 @@
 
 namespace wk {
 
-class CommandPoolCreateInfo {
-public:
-    CommandPoolCreateInfo& set_flags(VkCommandPoolCreateFlags flags) { _flags = flags; return *this; }
-    CommandPoolCreateInfo& set_queue_family_index(uint32_t queue_family_index) { _queue_family_index = queue_family_index; return *this; }
-    CommandPoolCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
-
-    VkCommandPoolCreateInfo to_vk() const {
-        VkCommandPoolCreateInfo ci{};
-        ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        ci.pNext = _p_next;
-        ci.flags = _flags;
-        ci.queueFamilyIndex = _queue_family_index;
-        return ci;
-    }
-
-private:
-    const void* _p_next = nullptr;
-    VkCommandPoolCreateFlags _flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    uint32_t _queue_family_index = 0;
-};
-        
-
 class CommandPool {
 public:
-    CommandPool() noexcept = default;
+    CommandPool() = default;
     CommandPool(VkDevice device, const VkCommandPoolCreateInfo& create_info)
         : _device(device)
     {
@@ -77,6 +55,27 @@ public:
 private:
     VkCommandPool _handle = VK_NULL_HANDLE;
     VkDevice _device = VK_NULL_HANDLE;
+};
+
+class CommandPoolCreateInfo {
+public:
+    CommandPoolCreateInfo& set_flags(VkCommandPoolCreateFlags flags) { _flags = flags; return *this; }
+    CommandPoolCreateInfo& set_queue_family_index(uint32_t queue_family_index) { _queue_family_index = queue_family_index; return *this; }
+    CommandPoolCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+
+    VkCommandPoolCreateInfo to_vk() const {
+        VkCommandPoolCreateInfo ci{};
+        ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        ci.pNext = _p_next;
+        ci.flags = _flags;
+        ci.queueFamilyIndex = _queue_family_index;
+        return ci;
+    }
+
+private:
+    const void* _p_next = nullptr;
+    VkCommandPoolCreateFlags _flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    uint32_t _queue_family_index = 0;
 };
 
 }

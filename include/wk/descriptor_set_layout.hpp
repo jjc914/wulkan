@@ -10,6 +10,52 @@
 
 namespace wk {
 
+class DescriptorSetLayout {
+public:
+    DescriptorSetLayout() = default;
+    DescriptorSetLayout(VkDevice device, const VkDescriptorSetLayoutCreateInfo& ci)
+        : _device(device)
+    {
+        if (vkCreateDescriptorSetLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create descriptor set layout" << std::endl;
+        }
+    }
+
+    ~DescriptorSetLayout() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyDescriptorSetLayout(_device, _handle, nullptr);
+        }
+    }
+
+    DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+    DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
+
+    DescriptorSetLayout(DescriptorSetLayout&& other) noexcept
+        : _device(other._device), _handle(other._handle)
+    {
+        other._handle = VK_NULL_HANDLE;
+        other._device = VK_NULL_HANDLE;
+    }
+
+    DescriptorSetLayout& operator=(DescriptorSetLayout&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyDescriptorSetLayout(_device, _handle, nullptr);
+            }
+            _device = other._device;
+            _handle = other._handle;
+            other._handle = VK_NULL_HANDLE;
+            other._device = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkDescriptorSetLayout& handle() const { return _handle; }
+private:
+    VkDescriptorSetLayout _handle = VK_NULL_HANDLE;
+    VkDevice _device = VK_NULL_HANDLE;
+};
+
 class DescriptorSetLayoutBinding {
 public:
     DescriptorSetLayoutBinding& set_binding(uint32_t binding) { _binding = binding; return *this; }
@@ -60,53 +106,6 @@ private:
     VkDescriptorSetLayoutCreateFlags _flags = 0;
     uint32_t _binding_count = 0;
     const VkDescriptorSetLayoutBinding* _p_bindings = nullptr;
-};
-    
-
-class DescriptorSetLayout {
-public:
-    DescriptorSetLayout() noexcept = default;
-    DescriptorSetLayout(VkDevice device, const VkDescriptorSetLayoutCreateInfo& ci)
-        : _device(device)
-    {
-        if (vkCreateDescriptorSetLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create descriptor set layout" << std::endl;
-        }
-    }
-
-    ~DescriptorSetLayout() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyDescriptorSetLayout(_device, _handle, nullptr);
-        }
-    }
-
-    DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-    DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
-
-    DescriptorSetLayout(DescriptorSetLayout&& other) noexcept
-        : _device(other._device), _handle(other._handle)
-    {
-        other._handle = VK_NULL_HANDLE;
-        other._device = VK_NULL_HANDLE;
-    }
-
-    DescriptorSetLayout& operator=(DescriptorSetLayout&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyDescriptorSetLayout(_device, _handle, nullptr);
-            }
-            _device = other._device;
-            _handle = other._handle;
-            other._handle = VK_NULL_HANDLE;
-            other._device = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkDescriptorSetLayout& handle() const { return _handle; }
-private:
-    VkDescriptorSetLayout _handle = VK_NULL_HANDLE;
-    VkDevice _device = VK_NULL_HANDLE;
 };
 
 }

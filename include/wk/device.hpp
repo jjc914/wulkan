@@ -13,6 +13,71 @@
 
 namespace wk {
 
+class Device {
+public:
+    Device() = default;
+    Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
+        if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
+            std::cerr << "failed to create logical device" << std::endl;
+        }
+
+        VkQueue graphics_q = VK_NULL_HANDLE;
+        VkQueue present_q = VK_NULL_HANDLE;
+
+        if (indices.is_unique()) {
+            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
+            vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &present_q);
+        } else {
+            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
+            present_q = graphics_q;
+        }
+
+        _graphics_queue = Queue(graphics_q);
+        _present_queue  = Queue(present_q);
+    }
+
+    ~Device() {
+        if (_handle != VK_NULL_HANDLE) {
+            vkDestroyDevice(_handle, nullptr);
+        }
+    }
+
+    Device(const Device&) = delete;
+    Device& operator=(const Device&) = delete;
+
+    Device(Device&& other) noexcept
+        : _handle(other._handle),
+          _graphics_queue(std::move(other._graphics_queue)),
+          _present_queue(std::move(other._present_queue)) 
+    {
+        other._handle = VK_NULL_HANDLE;
+    }
+
+    Device& operator=(Device&& other) noexcept {
+        if (this != &other) {
+            if (_handle != VK_NULL_HANDLE) {
+                vkDestroyDevice(_handle, nullptr);
+            }
+
+            _handle = other._handle;
+            _graphics_queue = std::move(other._graphics_queue);
+            _present_queue = std::move(other._present_queue);
+
+            other._handle = VK_NULL_HANDLE;
+        }
+        return *this;
+    }
+
+    const VkDevice& handle() const { return _handle; }
+    const Queue& graphics_queue() const { return _graphics_queue; }
+    const Queue& present_queue() const { return _present_queue; }
+
+private:
+    VkDevice _handle = VK_NULL_HANDLE;
+    Queue _graphics_queue;
+    Queue _present_queue;
+};
+
 class GraphicsQueueSubmitInfo {
 public:
     GraphicsQueueSubmitInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
@@ -167,72 +232,6 @@ private:
     const char* const* _pp_enabled_extension_names = nullptr;
     uint32_t _queue_create_info_count = 0;
     const VkDeviceQueueCreateInfo* _p_queue_create_infos = nullptr;
-};
-    
-
-class Device {
-public:
-    Device() noexcept = default;
-    Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
-        if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create logical device" << std::endl;
-        }
-
-        VkQueue graphics_q = VK_NULL_HANDLE;
-        VkQueue present_q = VK_NULL_HANDLE;
-
-        if (indices.is_unique()) {
-            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
-            vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &present_q);
-        } else {
-            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
-            present_q = graphics_q;
-        }
-
-        _graphics_queue = Queue(graphics_q);
-        _present_queue  = Queue(present_q);
-    }
-
-    ~Device() {
-        if (_handle != VK_NULL_HANDLE) {
-            vkDestroyDevice(_handle, nullptr);
-        }
-    }
-
-    Device(const Device&) = delete;
-    Device& operator=(const Device&) = delete;
-
-    Device(Device&& other) noexcept
-        : _handle(other._handle),
-          _graphics_queue(std::move(other._graphics_queue)),
-          _present_queue(std::move(other._present_queue)) 
-    {
-        other._handle = VK_NULL_HANDLE;
-    }
-
-    Device& operator=(Device&& other) noexcept {
-        if (this != &other) {
-            if (_handle != VK_NULL_HANDLE) {
-                vkDestroyDevice(_handle, nullptr);
-            }
-
-            _handle = other._handle;
-            _graphics_queue = std::move(other._graphics_queue);
-            _present_queue = std::move(other._present_queue);
-
-            other._handle = VK_NULL_HANDLE;
-        }
-        return *this;
-    }
-
-    const VkDevice& handle() const { return _handle; }
-    const Queue& graphics_queue() const { return _graphics_queue; }
-    const Queue& present_queue() const { return _present_queue; }
-
-private:
-    VkDevice _handle = VK_NULL_HANDLE;
-    Queue _graphics_queue;
-    Queue _present_queue;
 };
 
 } // namespace wk
