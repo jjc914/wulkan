@@ -16,7 +16,7 @@ namespace wk {
 class Device {
 public:
     Device() = default;
-    Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, VkSurfaceKHR surface, const VkDeviceCreateInfo& ci) {
+    Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, const VkDeviceCreateInfo& ci) {
         if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
             std::cerr << "failed to create logical device" << std::endl;
         }

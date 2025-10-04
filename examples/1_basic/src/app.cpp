@@ -116,7 +116,7 @@ int App::_init_vulkan() {
                 .to_vk());
     }
 
-    _device = wk::Device(_physical_device.handle(), queue_family_indices, _surface.handle(),
+    _device = wk::Device(_physical_device.handle(), queue_family_indices,
         wk::DeviceCreateInfo{}
             .set_p_enabled_features(&_physical_device.features())
             .set_enabled_extensions(_physical_device.extensions().size(),
