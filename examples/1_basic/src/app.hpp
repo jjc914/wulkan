@@ -78,7 +78,6 @@ private:
 
     wk::Instance _instance;
     wk::DebugMessenger _debug_messenger;
-    wk::ext::glfw::Surface _surface;
     wk::PhysicalDevice _physical_device;
     wk::Device _device;
 
