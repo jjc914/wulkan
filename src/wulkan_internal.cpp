@@ -233,6 +233,7 @@ VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<V
         }
     }
     std::cerr << "failed to find supported depth format" << std::endl;
+    return VK_FORMAT_UNDEFINED;
 }
 
 VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKHR>& available_present_modes) {
