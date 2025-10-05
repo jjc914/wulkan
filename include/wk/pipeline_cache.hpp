@@ -12,7 +12,7 @@ public:
         : _device(device)
     {
         if (vkCreatePipelineCache(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create pipeline cache" << std::endl;
+            throw std::runtime_error("failed to create pipeline cache");
         }
     }
 

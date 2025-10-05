@@ -15,7 +15,7 @@ public:
     Instance() = default;
     Instance(const VkInstanceCreateInfo& ci) {
         if (vkCreateInstance(&ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create vulkan instance" << std::endl;
+            throw std::runtime_error("failed to create vulkan instance");
         }
     }
 

@@ -21,7 +21,7 @@ public:
           _image_sharing_mode(ci.imageSharingMode) 
     {
         if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create swapchain" << std::endl;
+            throw std::runtime_error("failed to create swapchain");
         }
 
         uint32_t image_count = 0;
@@ -39,7 +39,7 @@ public:
                 .set_subresource_range(ImageSubresourceRange::color().to_vk())
                 .to_vk();
             if (vkCreateImageView(_device, &view_info, nullptr, &_image_views[i]) != VK_SUCCESS) {
-                std::cerr << "failed to create image views" << std::endl;
+                throw std::runtime_error("failed to create image views");
             }
         }
     }

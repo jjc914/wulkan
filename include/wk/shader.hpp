@@ -16,7 +16,7 @@ public:
         : _device(device)
     {
         if (vkCreateShaderModule(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create shader module" << std::endl;
+            throw std::runtime_error("failed to create shader module");
             _handle = VK_NULL_HANDLE;
             _device = VK_NULL_HANDLE;
         }

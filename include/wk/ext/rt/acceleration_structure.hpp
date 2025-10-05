@@ -20,9 +20,9 @@ public:
           _vkDestroyAccelerationStructureKHR(f.vkDestroyAccelerationStructureKHR)
     {
         if (_vkCreateAccelerationStructureKHR == VK_NULL_HANDLE) {
-            std::cerr << "device function vkCreateAccelerationStructureKHR not set" << std::endl;
+            throw std::runtime_error("device function vkCreateAccelerationStructureKHR not set");
         } else if (_vkCreateAccelerationStructureKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create acceleration structure" << std::endl;
+            throw std::runtime_error("failed to create acceleration structure");
         }
     }
 

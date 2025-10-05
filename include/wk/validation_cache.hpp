@@ -12,7 +12,7 @@ public:
         : _device(device) 
     {
         if (vkCreateValidationCacheEXT(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create validation cache" << std::endl;
+            throw std::runtime_error("failed to create validation cache");
         }
     }
 

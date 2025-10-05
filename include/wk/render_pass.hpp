@@ -16,7 +16,7 @@ public:
         : _device(device)
     {
         if (vkCreateRenderPass(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create render pass" << std::endl;
+            throw std::runtime_error("failed to create render pass");
         }
     }
 

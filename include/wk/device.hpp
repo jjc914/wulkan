@@ -18,7 +18,7 @@ public:
     Device() = default;
     Device(VkPhysicalDevice physical_device, DeviceQueueFamilyIndices indices, const VkDeviceCreateInfo& ci) {
         if (vkCreateDevice(physical_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create logical device" << std::endl;
+            throw std::runtime_error("failed to create logical device");
         }
 
         VkQueue graphics_q = VK_NULL_HANDLE;

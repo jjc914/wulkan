@@ -16,7 +16,7 @@ public:
         : _device(device), _command_pool(ai.commandPool)
     {
         if (vkAllocateCommandBuffers(_device, &ai, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to allocate command buffer" << std::endl;
+            throw std::runtime_error("failed to allocate command buffer");
         }
     }
 

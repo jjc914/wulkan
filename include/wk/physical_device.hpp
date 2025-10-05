@@ -21,14 +21,14 @@ public:
         : _extensions(extensions) 
     {
         if (!feature_chain) {
-            std::cerr << "must supply feature chain" << std::endl;
+            throw std::runtime_error("must supply feature chain");
             return;
         }
 
         uint32_t device_count = 0;
         vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
         if (device_count == 0) {
-            std::cerr << "failed to find suitable gpu with vulkan support" << std::endl;
+            throw std::runtime_error("failed to find suitable gpu with vulkan support");
             return;
         }
         std::vector<VkPhysicalDevice> devices(device_count);
@@ -43,7 +43,7 @@ public:
         if (device_scores.rbegin()->first > 0) {
             _handle = device_scores.rbegin()->second;
         } else {
-            std::cerr << "failed to find suitable gpu" << std::endl;
+            throw std::runtime_error("failed to find suitable gpu");
             return;
         }
 

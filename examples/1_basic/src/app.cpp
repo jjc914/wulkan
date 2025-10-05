@@ -30,13 +30,13 @@ int App::run() {
 int App::_init_window() {
     glfwSetErrorCallback(wk::ext::glfw::DefaultGlfwErrorCallback);
     if (!glfwInit()) {
-        std::cerr << "glfw failed to init" << std::endl;
+        throw std::runtime_error("glfw failed to init");
         return 1;
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     _window = glfwCreateWindow(_WIDTH, _HEIGHT, "example1_basic", nullptr, nullptr);
     if (!glfwVulkanSupported()) {
-        std::cerr << "glfw vulkan not supported" << std::endl;
+        throw std::runtime_error("glfw vulkan not supported");
         return 1;
     }
     return 0;
@@ -664,7 +664,7 @@ int App::_main_loop() {
             _rebuild_swapchain();
             continue;
         } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            std::cerr << "failed to acquire swapchain image" << std::endl;
+            throw std::runtime_error("failed to acquire swapchain image");
             return 1;
         }
 
@@ -674,7 +674,7 @@ int App::_main_loop() {
         VkCommandBufferBeginInfo cb_begin_info = wk::CommandBufferBeginInfo{}.to_vk();
         result = vkBeginCommandBuffer(_command_buffers[current_frame_in_flight].handle(), &cb_begin_info);
         if (result != VK_SUCCESS) {
-            std::cerr << "could not begin command buffer" << std::endl;
+            throw std::runtime_error("could not begin command buffer");
             return 1;
         }
 
@@ -743,7 +743,7 @@ int App::_main_loop() {
         vkCmdEndRenderPass(_command_buffers[current_frame_in_flight].handle());
         result = vkEndCommandBuffer(_command_buffers[current_frame_in_flight].handle());
         if (result != VK_SUCCESS) {
-            std::cerr << "failed to end command buffer" << std::endl;
+            throw std::runtime_error("failed to end command buffer");
             return 1;
         }
 
@@ -759,7 +759,7 @@ int App::_main_loop() {
             .to_vk();
         result = vkQueueSubmit(_device.graphics_queue().handle(), 1, &gq_submit_info, _frame_in_flight_fences[current_frame_in_flight].handle());
         if (result != VK_SUCCESS) {
-            std::cerr << "failed to submit queue" << std::endl;
+            throw std::runtime_error("failed to submit queue");
             return 1;
         }
 
@@ -775,7 +775,7 @@ int App::_main_loop() {
             _rebuild_swapchain();
             continue;
         } else if (result != VK_SUCCESS) {
-            std::cerr << "failed to present" << std::endl;
+            throw std::runtime_error("failed to present");
             return 1;
         }
         

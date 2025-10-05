@@ -15,7 +15,7 @@ public:
     Allocator() = default;
     Allocator(const VmaAllocatorCreateInfo& ci) {
         if (vmaCreateAllocator(&ci, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create vma allocator" << std::endl;
+            throw std::runtime_error("failed to create vma allocator");
         }
     }
 

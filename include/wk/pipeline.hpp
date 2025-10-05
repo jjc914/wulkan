@@ -16,7 +16,7 @@ public:
         : _device(device) 
     {
         if (vkCreateGraphicsPipelines(_device, VK_NULL_HANDLE, 1, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create graphics pipeline" << std::endl;
+            throw std::runtime_error("failed to create graphics pipeline");
         }
     }
 

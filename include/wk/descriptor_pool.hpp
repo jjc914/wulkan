@@ -15,7 +15,7 @@ public:
         : _device(device) 
     {
         if (vkCreateDescriptorPool(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create descriptor pool" << std::endl;
+            throw std::runtime_error("failed to create descriptor pool");
         }
     }
 

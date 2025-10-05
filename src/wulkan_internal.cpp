@@ -219,7 +219,7 @@ VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& av
             return available_format;
         }
     }
-    std::cerr << "failed to find recommended surface format" << std::endl;
+    throw std::runtime_error("failed to find recommended surface format");
     return available_formats[0];
 }
 
@@ -232,7 +232,7 @@ VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<V
             return format;
         }
     }
-    std::cerr << "failed to find supported depth format" << std::endl;
+    throw std::runtime_error("failed to find supported depth format");
     return VK_FORMAT_UNDEFINED;
 }
 
@@ -265,7 +265,7 @@ VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceC
 std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
     std::ifstream file(file_name, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "failed to open shader" << std::endl;
+        throw std::runtime_error("failed to open shader");
     }
 
     size_t file_size = static_cast<size_t>(file.tellg());

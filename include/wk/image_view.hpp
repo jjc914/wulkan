@@ -17,7 +17,7 @@ public:
         : _device(device)
     {
         if (vkCreateImageView(device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create image view!" << std::endl;
+            throw std::runtime_error("failed to create image view!");
         }
     }
 

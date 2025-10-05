@@ -26,7 +26,7 @@ public:
                 &ci,
                 nullptr,
                 &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create ray tracing pipeline" << std::endl;
+            throw std::runtime_error("failed to create ray tracing pipeline");
         }
     }
 

@@ -16,7 +16,7 @@ public:
         : _device(device)
     {
         if (vkCreateFence(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create fence" << std::endl;
+            throw std::runtime_error("failed to create fence");
         }
     }
 

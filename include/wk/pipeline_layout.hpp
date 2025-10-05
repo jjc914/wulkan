@@ -16,7 +16,7 @@ public:
         : _device(device)
     {
         if (vkCreatePipelineLayout(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create pipeline layout" << std::endl;
+            throw std::runtime_error("failed to create pipeline layout");
         }
     }
 

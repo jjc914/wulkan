@@ -12,7 +12,7 @@ public:
         : _device(device) 
     {
         if (vkCreateEvent(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create event" << std::endl;
+            throw std::runtime_error("failed to create event");
         }
     }
 

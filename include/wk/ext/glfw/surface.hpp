@@ -16,7 +16,7 @@ public:
         : _instance(instance) 
     {
         if (glfwCreateWindowSurface(_instance, window, nullptr, &_handle)) {
-            std::cerr << "failed to create surface" << std::endl;
+            throw std::runtime_error("failed to create surface");
             exit(-1);
         }
     }

@@ -18,9 +18,9 @@ public:
           _vkDestroyDeferredOperationKHR(f.vkDestroyDeferredOperationKHR)
     {
         if (_vkCreateDeferredOperationKHR == VK_NULL_HANDLE) {
-            std::cerr << "device function vkCreateDeferredOperationKHR not set" << std::endl;
+            throw std::runtime_error("device function vkCreateDeferredOperationKHR not set");
         } else if (_vkCreateDeferredOperationKHR(_device, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create deferred operation" << std::endl;
+            throw std::runtime_error("failed to create deferred operation");
         }
     }
 

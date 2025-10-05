@@ -17,7 +17,7 @@ public:
         : _allocator(allocator)
     {
         if (vmaCreateBuffer(_allocator, &ci, &aci, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
-            std::cerr << "failed to create buffer" << std::endl;
+            throw std::runtime_error("failed to create buffer");
         }
     }
 

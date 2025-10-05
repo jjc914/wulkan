@@ -16,7 +16,7 @@ public:
         : _device(device), _pool(ai.descriptorPool)
     {
         if (vkAllocateDescriptorSets(device, &ai, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to allocate descriptor set" << std::endl;
+            throw std::runtime_error("failed to allocate descriptor set");
         }
     }
 

@@ -12,7 +12,7 @@ public:
         : _device(device)
     {
         if (vkCreateDescriptorUpdateTemplate(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create descriptor update template" << std::endl;
+            throw std::runtime_error("failed to create descriptor update template");
         }
     }
 

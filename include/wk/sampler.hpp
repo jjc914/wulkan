@@ -12,7 +12,7 @@ public:
         : _device(device) 
     {
         if (vkCreateSampler(device, &ci, nullptr, &_handle) != VK_SUCCESS) {
-            std::cerr << "failed to create sampler" << std::endl;
+            throw std::runtime_error("failed to create sampler");
         }
     }
 

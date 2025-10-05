@@ -16,7 +16,7 @@ public:
         : _allocator(allocator)
     {
         if (vmaCreateImage(allocator, &create_info, &alloc_info, &_handle, &_allocation, nullptr) != VK_SUCCESS) {
-            std::cerr << "failed to create image!" << std::endl;
+            throw std::runtime_error("failed to create image!");
         }
     }
 
