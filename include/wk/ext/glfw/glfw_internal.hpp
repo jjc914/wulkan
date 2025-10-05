@@ -4,10 +4,15 @@
 #include "../../wulkan_internal.hpp"
 #include <GLFW/glfw3.h>
 
+#include <string>
+#include <sstream>
+
 namespace wk::ext::glfw {
 
 static void DefaultGlfwErrorCallback(int error, const char* description) {
-    std::cerr << "GLFW Error " << error << ": " << description << std::endl;
+    std::ostringstream oss;
+    oss << "glfw error " << error << ": " << description;
+    throw std::runtime_error(oss.str());
 }
 
 std::vector<const char*> GetDefaultGlfwRequiredInstanceExtensions();
