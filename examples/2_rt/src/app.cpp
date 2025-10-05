@@ -90,7 +90,7 @@ int App::_init_vulkan() {
             .set_flags(VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR)
             .set_extensions(instance_extensions.size(), instance_extensions.data())
             .set_layers(instance_layers.size(), instance_layers.data())
-            .set_application_info(&application_info)
+            .set_p_application_info(&application_info)
 #ifdef WLK_ENABLE_VALIDATION_LAYERS
             .set_p_next(&features)
 #endif
@@ -130,7 +130,7 @@ int App::_init_vulkan() {
                 .to_vk());
     }
 
-    _device = wk::Device(_physical_device.handle(), queue_family_indices, _surface.handle(),
+    _device = wk::Device(_physical_device.handle(), queue_family_indices,
         wk::DeviceCreateInfo{}
             .set_enabled_extensions(_physical_device.extensions().size(),
                                     _physical_device.extensions().data())

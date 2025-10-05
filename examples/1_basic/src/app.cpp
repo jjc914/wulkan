@@ -45,7 +45,7 @@ int App::_init_window() {
 // ------------------------- vulkan -------------------------
 
 int App::_init_vulkan() {
-    #ifdef WLK_ENABLE_VALIDATION_LAYERS
+#ifdef WLK_ENABLE_VALIDATION_LAYERS
     VkDebugUtilsMessengerCreateInfoEXT debug_ci = wk::DebugMessengerCreateInfo{}
         .set_message_severity(
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |

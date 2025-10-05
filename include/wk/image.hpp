@@ -64,6 +64,7 @@ private:
 
 class Extent {
 public:
+    Extent() {}
     Extent(VkExtent2D e) {
         _width = e.width;
         _height = e.height;
