@@ -1,6 +1,8 @@
 #ifndef wulkan_wk_WULKAN_HPP
 #define wulkan_wk_WULKAN_HPP
 
+#include "extent.hpp"
+
 // Core instance & devices
 #include "instance.hpp"
 #include "debug_messenger.hpp"

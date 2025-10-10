@@ -330,13 +330,13 @@ int App::_init_vulkan() {
     std::vector<uint8_t> vert_byte_code = wk::ReadSpirvShader("build/bin/example1_basic/Debug/shaders/triangle.vert.spv");
     std::vector<uint8_t> frag_byte_code = wk::ReadSpirvShader("build/bin/example1_basic/Debug/shaders/triangle.frag.spv");
 
-    wk::Shader vert(_device.handle(),
-        wk::ShaderCreateInfo{}
+    wk::ShaderModule vert(_device.handle(),
+        wk::ShaderModuleCreateInfo{}
             .set_byte_code(vert_byte_code.size(), vert_byte_code.data())
             .to_vk()
     );
-    wk::Shader frag(_device.handle(),
-        wk::ShaderCreateInfo{}
+    wk::ShaderModule frag(_device.handle(),
+        wk::ShaderModuleCreateInfo{}
             .set_byte_code(frag_byte_code.size(), frag_byte_code.data())
             .to_vk()
     );

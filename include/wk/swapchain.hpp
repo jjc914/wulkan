@@ -16,10 +16,14 @@ class Swapchain {
 public:
     Swapchain() = default;
     Swapchain(VkDevice device, const VkSwapchainCreateInfoKHR& ci)
-        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent), 
-          _queue_family_indices(ci.pQueueFamilyIndices, ci.pQueueFamilyIndices + ci.queueFamilyIndexCount),
+        : _device(device), _image_format(ci.imageFormat), _extent(ci.imageExtent),
           _image_sharing_mode(ci.imageSharingMode) 
     {
+        if (ci.queueFamilyIndexCount > 0 && ci.pQueueFamilyIndices) {
+            _queue_family_indices.assign(ci.pQueueFamilyIndices, ci.pQueueFamilyIndices + ci.queueFamilyIndexCount);
+        } else {
+            _queue_family_indices.clear();
+        }
         if (vkCreateSwapchainKHR(_device, &ci, nullptr, &_handle) != VK_SUCCESS) {
             throw std::runtime_error("failed to create swapchain");
         }

@@ -19,16 +19,17 @@ namespace wk {
 
 struct DeviceQueueFamilyIndices {
     std::optional<uint32_t> graphics_family;
-    std::optional<uint32_t> present_family;
+    std::optional<uint32_t> compute_family;
+    std::optional<uint32_t> transfer_family;
 
     bool is_complete() const {
-        return graphics_family.has_value() && present_family.has_value();
+        return graphics_family.has_value() && compute_family.has_value() && transfer_family.has_value();
     }
     bool is_unique() const {
-        return graphics_family.value() != present_family.value();
+        return graphics_family.value() != compute_family.value() != transfer_family.value();
     }
     std::vector<uint32_t> to_vec() const {
-        return { graphics_family.value(), present_family.value() };
+        return { graphics_family.value(), compute_family.value(), transfer_family.value() };
     }
 };
 
@@ -44,15 +45,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DefaultDebugMessengerCallback(VkDebugUtilsMessage
                                                              VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
                                                              void* pUserData);
-DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 bool IsPhysicalDeviceExtensionSupported(VkPhysicalDevice device, const std::vector<const char*>& required_extensions);
 PhysicalDeviceSurfaceSupport GetPhysicalDeviceSurfaceSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface);
 using PhysicalDeviceFeatureScorer = int32_t(*)(VkPhysicalDevice, const VkPhysicalDeviceFeatures2*);
-int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface, VkPhysicalDeviceFeatures2* feature_chain, PhysicalDeviceFeatureScorer scorer);
-int32_t DefaultPhysicalDeviceFeatureScorer(VkPhysicalDevice device, const VkPhysicalDeviceFeatures2* features);
+int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_exts, VkPhysicalDeviceFeatures2* features_chain, PhysicalDeviceFeatureScorer scorer);int32_t DefaultPhysicalDeviceFeatureScorer(VkPhysicalDevice device, const VkPhysicalDeviceFeatures2* features);
 VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats);
-VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<VkFormat>& requested_formats);
+VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device);
 VkPresentModeKHR ChooseSurfacePresentationMode(const std::vector<VkPresentModeKHR>& available_present_modes);
 VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceCapabilitiesKHR& capabilities);
 std::vector<uint8_t> ReadSpirvShader(const char* file_name);

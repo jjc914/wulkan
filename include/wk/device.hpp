@@ -21,19 +21,12 @@ public:
             throw std::runtime_error("failed to create logical device");
         }
 
-        VkQueue graphics_q = VK_NULL_HANDLE;
-        VkQueue present_q = VK_NULL_HANDLE;
-
-        if (indices.is_unique()) {
-            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
-            vkGetDeviceQueue(_handle, indices.present_family.value(), 0, &present_q);
-        } else {
-            vkGetDeviceQueue(_handle, indices.graphics_family.value(), 0, &graphics_q);
-            present_q = graphics_q;
-        }
-
-        _graphics_queue = Queue(graphics_q);
-        _present_queue  = Queue(present_q);
+        if (indices.graphics_family)
+            _graphics_queue = wk::Queue(_handle, indices.graphics_family.value());
+        if (indices.compute_family)
+            _compute_queue = wk::Queue(_handle, indices.graphics_family.value());
+        if (indices.transfer_family)
+            _transfer_queue = wk::Queue(_handle, indices.graphics_family.value());
     }
 
     ~Device() {
@@ -48,7 +41,8 @@ public:
     Device(Device&& other) noexcept
         : _handle(other._handle),
           _graphics_queue(std::move(other._graphics_queue)),
-          _present_queue(std::move(other._present_queue)) 
+          _compute_queue(std::move(other._compute_queue)),
+          _transfer_queue(std::move(other._transfer_queue))
     {
         other._handle = VK_NULL_HANDLE;
     }
@@ -61,7 +55,8 @@ public:
 
             _handle = other._handle;
             _graphics_queue = std::move(other._graphics_queue);
-            _present_queue = std::move(other._present_queue);
+            _compute_queue = std::move(other._compute_queue);
+            _transfer_queue = std::move(other._transfer_queue);
 
             other._handle = VK_NULL_HANDLE;
         }
@@ -70,12 +65,14 @@ public:
 
     const VkDevice& handle() const { return _handle; }
     const Queue& graphics_queue() const { return _graphics_queue; }
-    const Queue& present_queue() const { return _present_queue; }
+    const Queue& compute_queue()  const { return _compute_queue; }
+    const Queue& transfer_queue() const { return _transfer_queue; }
 
 private:
     VkDevice _handle = VK_NULL_HANDLE;
     Queue _graphics_queue;
-    Queue _present_queue;
+    Queue _compute_queue;
+    Queue _transfer_queue;
 };
 
 class GraphicsQueueSubmitInfo {

@@ -9,10 +9,10 @@
 
 namespace wk {
 
-class Shader {
+class ShaderModule {
 public:
-    Shader() = default;
-    Shader(VkDevice device, const VkShaderModuleCreateInfo& create_info)
+    ShaderModule() = default;
+    ShaderModule(VkDevice device, const VkShaderModuleCreateInfo& create_info)
         : _device(device)
     {
         if (vkCreateShaderModule(_device, &create_info, nullptr, &_handle) != VK_SUCCESS) {
@@ -22,7 +22,7 @@ public:
         }
     }
 
-    ~Shader() {
+    ~ShaderModule() {
         if (_handle != VK_NULL_HANDLE) {
             vkDestroyShaderModule(_device, _handle, nullptr);
         }
@@ -30,10 +30,10 @@ public:
         _device = VK_NULL_HANDLE;
     }
 
-    Shader(const Shader&) = delete;
-    Shader& operator=(const Shader&) = delete;
+    ShaderModule(const ShaderModule&) = delete;
+    ShaderModule& operator=(const ShaderModule&) = delete;
 
-    Shader(Shader&& other) noexcept
+    ShaderModule(ShaderModule&& other) noexcept
         : _handle(other._handle),
           _device(other._device)
     {
@@ -41,7 +41,7 @@ public:
         other._device = VK_NULL_HANDLE;
     }
 
-    Shader& operator=(Shader&& other) noexcept {
+    ShaderModule& operator=(ShaderModule&& other) noexcept {
         if (this != &other) {
             if (_handle != VK_NULL_HANDLE) {
                 vkDestroyShaderModule(_device, _handle, nullptr);
@@ -60,11 +60,11 @@ private:
     VkDevice _device = VK_NULL_HANDLE;
 };
 
-class ShaderCreateInfo {
+class ShaderModuleCreateInfo {
 public:
-    ShaderCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
-    ShaderCreateInfo& set_flags(VkShaderModuleCreateFlags flags) { _flags = flags; return *this; }
-    ShaderCreateInfo& set_byte_code(size_t size, const void* p_code) { 
+    ShaderModuleCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    ShaderModuleCreateInfo& set_flags(VkShaderModuleCreateFlags flags) { _flags = flags; return *this; }
+    ShaderModuleCreateInfo& set_byte_code(size_t size, const void* p_code) { 
         _code_size = size;
         _p_code = p_code;
         return *this;

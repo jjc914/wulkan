@@ -46,7 +46,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DefaultDebugMessengerCallback(VkDebugUtilsMessage
     return VK_FALSE;
 }
 
-DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
+DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
     DeviceQueueFamilyIndices indices;
 
     uint32_t queue_family_count = 0;
@@ -56,20 +56,21 @@ DeviceQueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
 
     for (uint32_t i = 0; i < queue_families.size(); ++i) {
-        if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        const auto& q = queue_families[i];
+
+        if (q.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphics_family = i;
-        }
 
-        VkBool32 present_support = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
-        if (present_support) {
-            indices.present_family = i;
-        }
+        if (q.queueFlags & VK_QUEUE_COMPUTE_BIT)
+            indices.compute_family = i;
 
-        if (indices.is_complete()) {
+        if (q.queueFlags & VK_QUEUE_TRANSFER_BIT)
+            indices.transfer_family = i;
+
+        if (indices.is_complete())
             break;
-        }
     }
+
     return indices;
 }
 
@@ -118,7 +119,7 @@ PhysicalDeviceSurfaceSupport GetPhysicalDeviceSurfaceSupport(VkPhysicalDevice de
 }
 
 bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface) {
-    DeviceQueueFamilyIndices indices = FindQueueFamilies(device, surface);
+    DeviceQueueFamilyIndices indices = FindQueueFamilies(device);
     bool is_extensions_supported = IsPhysicalDeviceExtensionSupported(device, required_extensions);
 
     bool is_swapchain_adequate = false;
@@ -130,28 +131,25 @@ bool IsPhysicalDeviceSuitable(VkPhysicalDevice device, const std::vector<const c
     return indices.is_complete() && is_extensions_supported && is_swapchain_adequate;
 }
 
-int32_t RatePhysicalDevice(VkPhysicalDevice device, const std::vector<const char*>& required_extensions, VkSurfaceKHR surface, VkPhysicalDeviceFeatures2* feature_chain, PhysicalDeviceFeatureScorer scorer) {
-    VkPhysicalDeviceProperties device_properties{};
-    vkGetPhysicalDeviceProperties(device, &device_properties);
+int32_t RatePhysicalDevice(VkPhysicalDevice device,
+    const std::vector<const char*>& required_exts,
+    VkPhysicalDeviceFeatures2* features_chain,
+    PhysicalDeviceFeatureScorer scorer)
+{
+    VkPhysicalDeviceProperties props{};
+    vkGetPhysicalDeviceProperties(device, &props);
+
+    if (!IsPhysicalDeviceExtensionSupported(device, required_exts))
+        return 0;
 
     int32_t score = 0;
-
-    if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+    if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
         score += 1000;
-    } else if (device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+    else if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
         score += 500;
-    } else {
-        return 0;
-    }
 
-    if (!IsPhysicalDeviceSuitable(device, required_extensions, surface)) {
-        return 0;
-    }
-
-    vkGetPhysicalDeviceFeatures2(device, feature_chain);
-
-    score += (*scorer)(device, feature_chain);
-
+    vkGetPhysicalDeviceFeatures2(device, features_chain);
+    score += (*scorer)(device, features_chain);
     return score;
 }
 
@@ -223,8 +221,14 @@ VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& av
     return available_formats[0];
 }
 
-VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device, const std::vector<VkFormat>& requested_formats) {
-    for (VkFormat format : requested_formats) {
+VkFormat ChooseDepthFormat(VkPhysicalDevice physical_device) {
+    static const std::vector<VkFormat> depth_formats = {
+        VK_FORMAT_D32_SFLOAT, 
+        VK_FORMAT_D32_SFLOAT_S8_UINT, 
+        VK_FORMAT_D24_UNORM_S8_UINT
+    };
+
+    for (VkFormat format : depth_formats) {
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties(physical_device, format, &props);
 

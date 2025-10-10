@@ -756,18 +756,18 @@ int App::_build_pipeline() {
     std::vector<uint8_t> rmiss_byte_code = wk::ReadSpirvShader("shaders/rt.rmiss.spv");
     std::vector<uint8_t> rchit_byte_code = wk::ReadSpirvShader("shaders/rt.rchit.spv");
 
-    wk::Shader rgen(_device.handle(), 
-        wk::ShaderCreateInfo{}
+    wk::ShaderModule rgen(_device.handle(), 
+        wk::ShaderModuleCreateInfo{}
             .set_byte_code(rgen_byte_code.size(), rgen_byte_code.data())
             .to_vk()
     );
-    wk::Shader rmiss(_device.handle(), 
-        wk::ShaderCreateInfo{}
+    wk::ShaderModule rmiss(_device.handle(), 
+        wk::ShaderModuleCreateInfo{}
             .set_byte_code(rmiss_byte_code.size(), rmiss_byte_code.data())
             .to_vk()
     );
-    wk::Shader rchit(_device.handle(), 
-        wk::ShaderCreateInfo{}
+    wk::ShaderModule rchit(_device.handle(), 
+        wk::ShaderModuleCreateInfo{}
             .set_byte_code(rchit_byte_code.size(), rchit_byte_code.data())
             .to_vk()
     );

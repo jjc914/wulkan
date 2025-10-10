@@ -15,53 +15,53 @@ namespace wk {
 class PhysicalDevice {
 public:
     PhysicalDevice() = default;
-    PhysicalDevice(VkInstance instance, VkSurfaceKHR surface, 
-            const std::vector<const char*>& extensions, VkPhysicalDeviceFeatures2* feature_chain, 
-            PhysicalDeviceFeatureScorer scorer = DefaultPhysicalDeviceFeatureScorer)
-        : _extensions(extensions) 
+    PhysicalDevice(VkInstance instance,
+                   const std::vector<const char*>& extensions,
+                   VkPhysicalDeviceFeatures2* feature_chain,
+                   PhysicalDeviceFeatureScorer scorer = DefaultPhysicalDeviceFeatureScorer)
+        : _extensions(extensions), _features2(*feature_chain)
     {
-        if (!feature_chain) {
-            throw std::runtime_error("must supply feature chain");
-            return;
-        }
+        if (!feature_chain)
+            throw std::runtime_error("wk::PhysicalDevice: must supply feature chain");
 
+        // Enumerate all available physical devices
         uint32_t device_count = 0;
         vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
-        if (device_count == 0) {
-            throw std::runtime_error("failed to find suitable gpu with vulkan support");
-            return;
-        }
+        if (device_count == 0)
+            throw std::runtime_error("wk::PhysicalDevice: no Vulkan-capable GPUs found");
+
         std::vector<VkPhysicalDevice> devices(device_count);
         vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
 
-        std::multimap<int32_t, VkPhysicalDevice> device_scores;
-        for (const auto& device : devices) {
-            int32_t score = RatePhysicalDevice(device, extensions, surface, feature_chain, scorer);
-            device_scores.insert({ score, device });
+        // Score and select the best GPU
+        std::multimap<int32_t, VkPhysicalDevice> candidates;
+        for (auto device : devices) {
+            int32_t score = RatePhysicalDevice(device, extensions, feature_chain, scorer);
+            candidates.insert({ score, device });
         }
 
-        if (device_scores.rbegin()->first > 0) {
-            _handle = device_scores.rbegin()->second;
-        } else {
-            throw std::runtime_error("failed to find suitable gpu");
-            return;
-        }
+        if (candidates.empty() || candidates.rbegin()->first <= 0)
+            throw std::runtime_error("wk::PhysicalDevice: no suitable GPU found");
 
+        _handle = candidates.rbegin()->second;
+
+        // Retrieve static device info
         vkGetPhysicalDeviceProperties(_handle, &_properties);
-        vkGetPhysicalDeviceFeatures2(_handle, feature_chain);
-
-        _queue_family_indices = FindQueueFamilies(_handle, surface);
+        vkGetPhysicalDeviceFeatures(_handle, &_features);
+        vkGetPhysicalDeviceFeatures2(_handle, &_features2);
+        vkGetPhysicalDeviceMemoryProperties(_handle, &_memory_properties);
     }
 
     const VkPhysicalDevice& handle() const { return _handle; }
     const VkPhysicalDeviceFeatures& features() const { return _features; }
-    const DeviceQueueFamilyIndices& queue_family_indices() const { return _queue_family_indices; }
+    const VkPhysicalDeviceFeatures2& features2() const { return _features2; }
     const std::vector<const char*>& extensions() const { return _extensions; }
 private:
     VkPhysicalDevice _handle = VK_NULL_HANDLE;
     VkPhysicalDeviceProperties _properties{};
     VkPhysicalDeviceFeatures _features{};
-    DeviceQueueFamilyIndices _queue_family_indices{};
+    VkPhysicalDeviceFeatures2 _features2{};
+    VkPhysicalDeviceMemoryProperties _memory_properties{};
 
     std::vector<const char*> _extensions{};
 };

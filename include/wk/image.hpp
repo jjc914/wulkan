@@ -62,37 +62,6 @@ private:
     VmaAllocation _allocation = VK_NULL_HANDLE;
 };
 
-class Extent {
-public:
-    Extent() {}
-    Extent(VkExtent2D e) {
-        _width = e.width;
-        _height = e.height;
-        _depth = 1;
-    }
-    Extent(VkExtent3D e) {
-        _width = e.width;
-        _height = e.height;
-        _depth = e.depth;
-    }
-
-    Extent& set_width(uint32_t width) { _width = width; return *this; }
-    Extent& set_height(uint32_t height) { _height = height; return *this; }
-    Extent& set_depth(uint32_t depth) { _depth = depth; return *this; }
-
-    VkExtent2D to_vk_extent_2d() const {
-        return VkExtent2D{ _width, _height };
-    }
-    VkExtent3D to_vk() const {
-        return VkExtent3D{ _width, _height, _depth };
-    }
-
-private:
-    uint32_t _width = 0;
-    uint32_t _height = 0;
-    uint32_t _depth = 1;
-};
-
 class ImageCreateInfo {
 public:
     ImageCreateInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
