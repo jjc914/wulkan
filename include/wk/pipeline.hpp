@@ -286,6 +286,8 @@ public:
     PipelineViewportStateCreateInfo& set_flags(VkPipelineViewportStateCreateFlags flags) { _flags = flags; return *this; }
     PipelineViewportStateCreateInfo& set_viewports(uint32_t count, const VkViewport* p_viewports) { _viewport_count = count; _p_viewports = p_viewports; return *this; }
     PipelineViewportStateCreateInfo& set_scissors(uint32_t count, const VkRect2D* p_scissors) { _scissor_count = count; _p_scissors = p_scissors; return *this; }
+    PipelineViewportStateCreateInfo& set_viewport_count(uint32_t count) { _viewport_count = count; return *this; }
+    PipelineViewportStateCreateInfo& set_scissor_count(uint32_t count) { _scissor_count = count; return *this; }
 
     VkPipelineViewportStateCreateInfo to_vk() const {
         VkPipelineViewportStateCreateInfo ci{};
