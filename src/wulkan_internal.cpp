@@ -269,10 +269,13 @@ VkExtent2D ChooseSurfaceExtent(uint32_t width, uint32_t height, const VkSurfaceC
 std::vector<uint8_t> ReadSpirvShader(const char* file_name) {
     std::ifstream file(file_name, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
-        throw std::runtime_error("failed to open shader");
+        return {};
     }
 
     size_t file_size = static_cast<size_t>(file.tellg());
+    if (file_size == 0) {
+        return {};
+    }
     std::vector<uint8_t> buffer(file_size);
 
     file.seekg(0);
