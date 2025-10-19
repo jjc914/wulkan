@@ -66,12 +66,12 @@ public:
     ImageMemoryBarrier& set_dst_access(VkAccessFlags v){ _dst = v; return *this; }
     ImageMemoryBarrier& set_old_layout(VkImageLayout v){ _old = v; return *this; }
     ImageMemoryBarrier& set_new_layout(VkImageLayout v){ _new = v; return *this; }
-    ImageMemoryBarrier& set_src_qfi(uint32_t i){ _src_qfi = i; return *this; }
-    ImageMemoryBarrier& set_dst_qfi(uint32_t i){ _dst_qfi = i; return *this; }
+    ImageMemoryBarrier& set_src_queue_family_index(uint32_t i){ _src_qfi = i; return *this; }
+    ImageMemoryBarrier& set_dst_queue_family_index(uint32_t i){ _dst_qfi = i; return *this; }
     ImageMemoryBarrier& set_image(VkImage img){ _img = img; return *this; }
     ImageMemoryBarrier& set_aspect(VkImageAspectFlags a){ _aspect = a; return *this; }
-    ImageMemoryBarrier& set_levels(uint32_t base, uint32_t count){ _baseLevel = base; _levelCount = count; return *this; }
-    ImageMemoryBarrier& set_layers(uint32_t base, uint32_t count){ _baseLayer = base; _layerCount = count; return *this; }
+    ImageMemoryBarrier& set_levels(uint32_t base, uint32_t count){ _base_level = base; _level_count = count; return *this; }
+    ImageMemoryBarrier& set_layers(uint32_t base, uint32_t count){ _base_layer = base; _layer_count = count; return *this; }
 
     VkImageMemoryBarrier to_vk() const {
         VkImageMemoryBarrier b{};
@@ -85,10 +85,10 @@ public:
         b.dstQueueFamilyIndex = _dst_qfi;
         b.image = _img;
         b.subresourceRange.aspectMask = _aspect;
-        b.subresourceRange.baseMipLevel = _baseLevel;
-        b.subresourceRange.levelCount = _levelCount;
-        b.subresourceRange.baseArrayLayer = _baseLayer;
-        b.subresourceRange.layerCount = _layerCount;
+        b.subresourceRange.baseMipLevel = _base_level;
+        b.subresourceRange.levelCount = _level_count;
+        b.subresourceRange.baseArrayLayer = _base_layer;
+        b.subresourceRange.layerCount = _layer_count;
         return b;
     }
 
@@ -99,7 +99,7 @@ private:
     uint32_t _src_qfi = VK_QUEUE_FAMILY_IGNORED, _dst_qfi = VK_QUEUE_FAMILY_IGNORED;
     VkImage _img = VK_NULL_HANDLE;
     VkImageAspectFlags _aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-    uint32_t _baseLevel = 0, _levelCount = 1, _baseLayer = 0, _layerCount = 1;
+    uint32_t _base_level = 0, _level_count = 1, _base_layer = 0, _layer_count = 1;
 };
 
 class MemoryBarrier2 {

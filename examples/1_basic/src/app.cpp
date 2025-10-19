@@ -546,7 +546,7 @@ int App::_init_vulkan() {
         vkEndCommandBuffer(upload_command_buffer.handle());
 
         // ---------- Submit & Wait ----------
-        VkSubmitInfo submit_info = wk::GraphicsQueueSubmitInfo{}
+        VkSubmitInfo submit_info = wk::SubmitInfo{}
             .set_command_buffers(1, &upload_command_buffer.handle())
             .to_vk();
 
@@ -751,7 +751,7 @@ int App::_main_loop() {
         std::vector<VkSemaphore> gq_wait_semaphores = { _image_available_semaphores[current_frame_in_flight].handle() };
         std::vector<VkPipelineStageFlags> gq_wait_stage_flags = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         std::vector<VkSemaphore> gq_signal_semaphores = { _render_finished_semaphores[current_frame_in_flight].handle() };
-        VkSubmitInfo gq_submit_info = wk::GraphicsQueueSubmitInfo{}
+        VkSubmitInfo gq_submit_info = wk::SubmitInfo{}
             .set_command_buffers(static_cast<uint32_t>(gq_command_buffers.size()), gq_command_buffers.data())
             .set_wait_semaphores(static_cast<uint32_t>(gq_wait_semaphores.size()), gq_wait_semaphores.data())
             .set_wait_dst_stage_masks(static_cast<uint32_t>(gq_wait_stage_flags.size()), gq_wait_stage_flags.data())

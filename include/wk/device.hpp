@@ -75,25 +75,25 @@ private:
     Queue _transfer_queue;
 };
 
-class GraphicsQueueSubmitInfo {
+class SubmitInfo {
 public:
-    GraphicsQueueSubmitInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
-    GraphicsQueueSubmitInfo& set_wait_semaphores(uint32_t count, const VkSemaphore* semaphores) {
+    SubmitInfo& set_p_next(const void* p_next) { _p_next = p_next; return *this; }
+    SubmitInfo& set_wait_semaphores(uint32_t count, const VkSemaphore* semaphores) {
         _wait_semaphore_count = count;
         _p_wait_semaphores = semaphores;
         return *this;
     }
-    GraphicsQueueSubmitInfo& set_wait_dst_stage_masks(uint32_t count, const VkPipelineStageFlags* stage_masks) {
+    SubmitInfo& set_wait_dst_stage_masks(uint32_t count, const VkPipelineStageFlags* stage_masks) {
         _wait_dst_stage_mask_count = count;
         _p_wait_dst_stage_masks = stage_masks;
         return *this;
     }
-    GraphicsQueueSubmitInfo& set_command_buffers(uint32_t count, const VkCommandBuffer* command_buffers) {
+    SubmitInfo& set_command_buffers(uint32_t count, const VkCommandBuffer* command_buffers) {
         _command_buffer_count = count;
         _p_command_buffers = command_buffers;
         return *this;
     }
-    GraphicsQueueSubmitInfo& set_signal_semaphores(uint32_t count, const VkSemaphore* semaphores) {
+    SubmitInfo& set_signal_semaphores(uint32_t count, const VkSemaphore* semaphores) {
         _signal_semaphore_count = count;
         _p_signal_semaphores = semaphores;
         return *this;

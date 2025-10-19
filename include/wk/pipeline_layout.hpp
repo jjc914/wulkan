@@ -60,7 +60,7 @@ public:
     PushConstantRange& set_offset(uint32_t offset) { _offset = offset; return *this; }
     PushConstantRange& set_size(uint32_t size) { _size = size; return *this; }
 
-    VkPushConstantRange to_vk_push_constant_range() {
+    VkPushConstantRange to_vk() {
         VkPushConstantRange pcr{};
         pcr.stageFlags = _stage_flags;
         pcr.offset = _offset;
